@@ -618,10 +618,8 @@ export const printType = withEnv<any, [any], string>(
         );
         // @ts-expect-error todo(flow->ts)
         if (type.qualifier?.escapedText) {
-          return `$PropertyType<${
-            importedIdentifier
-            // @ts-expect-error todo(flow->ts)
-          }, ${JSON.stringify(type.qualifier.escapedText)}>`;
+          // @ts-expect-error todo(flow->ts)
+          return `${importedIdentifier}.${type.qualifier.escapedText}`;
         }
         return importedIdentifier;
       }
