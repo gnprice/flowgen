@@ -151,7 +151,7 @@ export function importTypeToImportDeclaration() {
           throw null; // TODO better exception
 
         const importSource = node.argument.literal.text;
-        const importSourceReduced = importSource.replace(/[@-/]/g, "_"); // TODO make injective
+        const importSourceReduced = importSource.replace(/[@/-]/g, "_"); // TODO make injective
         const importedName = `$Flowgen$Import$${importSourceReduced}`;
         const identifier = ctx.factory.createIdentifier(importedName);
         if (!imports.has(importedName)) {
@@ -171,18 +171,20 @@ export function importTypeToImportDeclaration() {
           identifier,
           node.qualifier,
         );
-        console.log(node);
-        return ctx.factory.createTypeReferenceNode(
+        const replaced = ctx.factory.createTypeReferenceNode(
           qualifiedName,
           node.typeArguments,
         );
+        console.log({ node, replaced });
+        // return qualifiedName; // no crash
+        return replaced; // TODO crashes
       }
 
       if (ts.isSourceFile(node)) {
-        ts.visitEachChild(node, visitor, ctx);
-        return node;
+        return ts.visitEachChild(node, visitor, ctx);
       }
-      return node;
+
+      return ts.visitEachChild(node, visitor, ctx);
     };
     return visitor;
   }
