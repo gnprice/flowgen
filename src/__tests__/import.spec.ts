@@ -5,7 +5,7 @@ it("should handle dynamic imports", () => {
   const ts = `
 type A = import('react');
 type B = import('react').ComponentType<{}>;
-// type C = import('react').ReactNode; // TODO this needs smart-identifiers to apply to it
+type C = import('react').ReactNode;
 type D = import('zlib').Zlib;
 `;
   const result = compiler.compileDefinitionString(ts, { quiet: true });

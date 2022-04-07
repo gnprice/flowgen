@@ -6,6 +6,7 @@ import * as $Flowgen$Import$zlib from \\"zlib\\";
 
 declare type A = typeof $Flowgen$Import$react;
 declare type B = $Flowgen$Import$react.ComponentType<{ ... }>;
+declare type C = $Flowgen$Import$react.ReactNode;
 declare type D = $Flowgen$Import$zlib.Zlib;
 "
 `;
