@@ -43,7 +43,7 @@ program
       addFlowHeader: options.addFlowHeader,
       compileTests: options.compileTests,
       out: options.outputFile,
-      version: pkg.version,
+      version: "1.17.0",
       asModule: options.asModule,
     }).compile(files);
   });
