@@ -175,13 +175,20 @@ export function importTypeToImportDeclaration() {
           qualifiedName,
           node.typeArguments,
         );
-        console.log({ node, replaced });
-        // return qualifiedName; // no crash
-        return replaced; // TODO crashes
+        // console.log({ node, replaced });
+        return qualifiedName; // no crash
+        // return replaced; // TODO crashes
       }
 
       if (ts.isSourceFile(node)) {
-        return ts.visitEachChild(node, visitor, ctx);
+        const visited = ts.visitEachChild(node, visitor, ctx);
+        if (!imports.size) {
+          return visited;
+        }
+        return ctx.factory.updateSourceFile(visited, [
+          ...imports.values(),
+          ...visited.statements,
+        ]);
       }
 
       return ts.visitEachChild(node, visitor, ctx);
