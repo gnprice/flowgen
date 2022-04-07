@@ -18,6 +18,7 @@ import {
   importEqualsTransformer,
   legacyModules,
   declarationFileTransform,
+  importTypeToImportDeclaration,
 } from "../parse/transformers";
 import { recursiveWalkTree } from "../parse";
 import { printFlowGenHelper } from "../printers/node";
@@ -51,8 +52,7 @@ const getTransformers = (options?: Options) => [
   legacyModules(),
   importEqualsTransformer(),
   declarationFileTransform(options),
-  // TODO transform ImportType uses *here* -- that way there's a real import
-  //   in the AST the TS analyzer operates on
+  importTypeToImportDeclaration,
 ];
 
 /**

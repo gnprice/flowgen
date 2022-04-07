@@ -625,6 +625,7 @@ export const printType = withEnv<any, [any], string>(
         return type.text;
 
       case ts.SyntaxKind.ImportType: {
+        throw new Error("an ImportType survived");
         const importSource = printType(type.argument);
         const importSourceReduced = importSource.replace(/"/g, "");
         const importedIdentifier = `$Flowgen$Import$${importSourceReduced}`;

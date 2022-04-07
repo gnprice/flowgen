@@ -121,3 +121,72 @@ export function declarationFileTransform(options?: Options) {
     return (sf: ts.SourceFile) => ts.visitNode(sf, visitor(ctx));
   };
 }
+
+function prependIdentifier(
+  ctx: ts.TransformationContext,
+  id: ts.Identifier,
+  qualifier: ts.EntityName | undefined,
+): ts.EntityName {
+  if (!qualifier) {
+    return id;
+  } else if (qualifier.kind === ts.SyntaxKind.Identifier) {
+    return ctx.factory.createQualifiedName(id, qualifier);
+  } else {
+    return ctx.factory.createQualifiedName(
+      prependIdentifier(ctx, id, qualifier.left),
+      qualifier.right,
+    );
+  }
+}
+
+export function importTypeToImportDeclaration() {
+  function visitor(ctx: ts.TransformationContext) {
+    const imports = new Map();
+    const visitor: ts.Visitor = (node: ts.Node): ts.VisitResult<ts.Node> => {
+      if (ts.isImportTypeNode(node)) {
+        if (
+          !ts.isLiteralTypeNode(node.argument) ||
+          !ts.isStringLiteral(node.argument.literal)
+        )
+          throw null; // TODO better exception
+
+        const importSource = node.argument.literal.text;
+        const importSourceReduced = importSource.replace(/[@-/]/g, "_"); // TODO make injective
+        const importedName = `$Flowgen$Import$${importSourceReduced}`;
+        const identifier = ctx.factory.createIdentifier(importedName);
+        if (!imports.has(importedName)) {
+          imports.set(
+            importedName,
+            ctx.factory.createImportDeclaration(
+              [],
+              [],
+              ctx.factory.createImportClause(false, identifier, undefined),
+              node.argument.literal,
+            ),
+          );
+        }
+
+        const qualifiedName = prependIdentifier(
+          ctx,
+          identifier,
+          node.qualifier,
+        );
+        console.log(node);
+        return ctx.factory.createTypeReferenceNode(
+          qualifiedName,
+          node.typeArguments,
+        );
+      }
+
+      if (ts.isSourceFile(node)) {
+        ts.visitEachChild(node, visitor, ctx);
+        return node;
+      }
+      return node;
+    };
+    return visitor;
+  }
+  return (ctx: ts.TransformationContext): ts.Transformer<any> => {
+    return (sf: ts.SourceFile) => ts.visitNode(sf, visitor(ctx));
+  };
+}
