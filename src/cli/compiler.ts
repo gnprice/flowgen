@@ -139,7 +139,7 @@ export default {
       mapSourceCode(oldReadFile(fileName), fileName);
     compilerHost.getSourceFile = (file, languageVersion) => {
       if (file === path) {
-        return transform(
+        const transformedAst = transform(
           //$todo Flow has problems when switching variables instead of literals
           createSourceFile(
             file,
@@ -150,6 +150,8 @@ export default {
           getTransformers(options),
           compilerOptions,
         ).transformed[0];
+        const transformedText = ts.createPrinter().printFile(transformedAst);
+        return createSourceFile(file, transformedText, languageVersion, true);
       }
       return oldSourceFile(file, languageVersion);
     };
