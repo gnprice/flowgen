@@ -140,6 +140,12 @@ function prependIdentifier(
   }
 }
 
+function escapeNameAsIdentifierWithPrefix(prefix: string, name: string) {
+  return (
+    prefix + name.replace(/\P{ID_Continue}|_/gu, c => `_${c.codePointAt(0)}`)
+  );
+}
+
 export function importTypeToImportDeclaration() {
   function visitor(ctx: ts.TransformationContext) {
     const imports = new Map();
@@ -152,11 +158,10 @@ export function importTypeToImportDeclaration() {
           throw null; // TODO better exception
 
         const importSource = node.argument.literal.text;
-        const importSourceReduced = importSource.replace(/[@/.-]/g, "_");
         let identifier;
         if (!imports.has(importSource)) {
-          identifier = ctx.factory.createUniqueName(
-            `$Flowgen$Import$${importSource}`,
+          identifier = ctx.factory.createIdentifier(
+            escapeNameAsIdentifierWithPrefix("$Flowgen$Import$", importSource),
           );
           const decl =
             // import * as ${identifier} from ${node.argument};
@@ -170,12 +175,12 @@ export function importTypeToImportDeclaration() {
               ),
               node.argument.literal,
             );
-          console.log(decl.importClause.namedBindings.name);
+          // console.log(decl.importClause.namedBindings.name);
           imports.set(importSource, { identifier, decl });
         } else {
           identifier = imports.get(importSource).identifier;
         }
-        console.log({ importSource, identifier });
+        // console.log({ importSource, identifier });
 
         if (!node.qualifier) {
           // The reference is to the module as a whole, as a type.
@@ -208,7 +213,7 @@ export function importTypeToImportDeclaration() {
         }
         // console.log(imports);
         return ctx.factory.updateSourceFile(visited, [
-          ...imports.values(),
+          ...[...imports.values()].map(v => v.decl),
           ...visited.statements,
         ]);
       }

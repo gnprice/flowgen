@@ -13,3 +13,13 @@ type Z = number;
   expect(beautify(result)).toMatchSnapshot();
   expect(result).toBeValidFlowTypeDeclarations();
 });
+
+it("should handle imports from odd names", () => {
+  const ts = `
+type A = import('..');
+type B = import('@!-/./');
+`;
+  const result = compiler.compileDefinitionString(ts, { quiet: true });
+  expect(beautify(result)).toMatchSnapshot();
+  // expect(result).toBeValidFlowTypeDeclarations(); // would need actual modules at those names
+});
