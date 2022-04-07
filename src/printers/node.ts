@@ -107,6 +107,22 @@ type PrintNode =
   | ts.SetAccessorDeclaration
   | ts.InferTypeNode;
 
+function prependIdentifier(
+  id: ts.Identifier,
+  qualifier: ts.EntityName | undefined,
+): ts.EntityName {
+  if (!qualifier) {
+    return id;
+  } else if (qualifier.kind === ts.SyntaxKind.Identifier) {
+    return ts.createQualifiedName(id, qualifier);
+  } else {
+    return ts.createQualifiedName(
+      prependIdentifier(id, qualifier.left),
+      qualifier.right,
+    );
+  }
+}
+
 export function printEntityName(type: ts.EntityName): string {
   if (type.kind === ts.SyntaxKind.QualifiedName) {
     return (
@@ -616,14 +632,14 @@ export const printType = withEnv<any, [any], string>(
           importedIdentifier,
           `import * as ${importedIdentifier} from ${importSource};`,
         );
-        let result = importedIdentifier;
-        // @ts-expect-error todo(flow->ts)
-        if (type.qualifier?.escapedText) {
-          // @ts-expect-error todo(flow->ts)
-          result += `.${type.qualifier.escapedText}`;
-        }
-        result += printers.common.generics(type.typeArguments);
-        return result;
+
+        const qualifiedName = prependIdentifier(
+          ts.createIdentifier(importedIdentifier),
+          type.qualifier,
+        );
+        return printType(
+          ts.createTypeReferenceNode(qualifiedName, type.typeArguments),
+        );
       }
 
       case ts.SyntaxKind.FirstTypeNode:
