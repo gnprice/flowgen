@@ -12,9 +12,9 @@ declare type Z = number;
 `;
 
 exports[`should handle imports from odd names 1`] = `
-"import * as $Flowgen$Import$_46_46 from \\"..\\";
-import * as $Flowgen$Import$_64_33_45_47_46_47 from \\"@!-/./\\";
-declare type A = typeof $Flowgen$Import$_46_46;
-declare type B = typeof $Flowgen$Import$_64_33_45_47_46_47;
+"import * as $Flowgen$Import$_2e__2e_ from \\"..\\";
+import * as $Flowgen$Import$_40__21__2d__2f__2e__2f_ from \\"@!-/./\\";
+declare type A = typeof $Flowgen$Import$_2e__2e_;
+declare type B = typeof $Flowgen$Import$_40__21__2d__2f__2e__2f_;
 "
 `;
