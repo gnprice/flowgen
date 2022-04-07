@@ -1,4 +1,4 @@
-import {
+import ts, {
   createProgram,
   createCompilerHost,
   createSourceFile,
@@ -86,12 +86,15 @@ export default {
     const oldSourceFile = compilerHost.getSourceFile;
     compilerHost.getSourceFile = (file, languageVersion) => {
       if (file === "file.ts") {
-        return transform(
+        // TODO clean this up, and do at other sites below
+        const tt = transform(
           //$todo Flow has problems when switching variables instead of literals
           createSourceFile("/dev/null", string, languageVersion, true),
           getTransformers(options),
           compilerOptions,
         ).transformed[0];
+        const ss = ts.createPrinter().printFile(tt);
+        return createSourceFile("/dev/null", ss, languageVersion, true);
       }
       return oldSourceFile(file, languageVersion);
     };

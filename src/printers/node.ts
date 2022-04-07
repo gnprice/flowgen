@@ -670,6 +670,7 @@ export const printType = withEnv<any, [any], string>(
 
           //$todo
           fixDefaultTypeArguments(symbol, type);
+          // console.log({ symbol, type, name: type.typeName });
           const isRenamed = renames(symbol, type);
           if (!isRenamed) {
             //$todo weird union errors

@@ -5,7 +5,7 @@ it("should handle dynamic imports", () => {
   const ts = `
 // type A = import('react'); // TODO hmm, why no typeof?
 type B = import('react').ComponentType<{}>;
-// type C = import('react').ReactNode; // TODO hmm, why no smart-identifier rewrite?
+type C = import('react').ReactNode;
 type D = import('zlib').Zlib;
 type Z = number;
 `;
