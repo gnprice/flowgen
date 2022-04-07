@@ -152,12 +152,13 @@ export function importTypeToImportDeclaration() {
           throw null; // TODO better exception
 
         const importSource = node.argument.literal.text;
-        const importSourceReduced = importSource.replace(/[@/-]/g, "_"); // TODO make injective
-        const importedName = `$Flowgen$Import$${importSourceReduced}`;
-        const identifier = ctx.factory.createIdentifier(importedName);
-        if (!imports.has(importedName)) {
-          imports.set(
-            importedName,
+        const importSourceReduced = importSource.replace(/[@/.-]/g, "_");
+        let identifier;
+        if (!imports.has(importSource)) {
+          identifier = ctx.factory.createUniqueName(
+            `$Flowgen$Import$${importSource}`,
+          );
+          const decl =
             // import * as ${identifier} from ${node.argument};
             ctx.factory.createImportDeclaration(
               undefined,
@@ -168,9 +169,13 @@ export function importTypeToImportDeclaration() {
                 ctx.factory.createNamespaceImport(identifier),
               ),
               node.argument.literal,
-            ),
-          );
+            );
+          console.log(decl.importClause.namedBindings.name);
+          imports.set(importSource, { identifier, decl });
+        } else {
+          identifier = imports.get(importSource).identifier;
         }
+        console.log({ importSource, identifier });
 
         if (!node.qualifier) {
           // The reference is to the module as a whole, as a type.
