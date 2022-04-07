@@ -616,12 +616,14 @@ export const printType = withEnv<any, [any], string>(
           importedIdentifier,
           `import * as ${importedIdentifier} from ${importSource};`,
         );
+        let result = importedIdentifier;
         // @ts-expect-error todo(flow->ts)
         if (type.qualifier?.escapedText) {
           // @ts-expect-error todo(flow->ts)
-          return `${importedIdentifier}.${type.qualifier.escapedText}`;
+          result += `.${type.qualifier.escapedText}`;
         }
-        return importedIdentifier;
+        result += printers.common.generics(type.typeArguments);
+        return result;
       }
 
       case ts.SyntaxKind.FirstTypeNode:
