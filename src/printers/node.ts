@@ -107,22 +107,6 @@ type PrintNode =
   | ts.SetAccessorDeclaration
   | ts.InferTypeNode;
 
-function prependIdentifier(
-  id: ts.Identifier,
-  qualifier: ts.EntityName | undefined,
-): ts.EntityName {
-  if (!qualifier) {
-    return id;
-  } else if (qualifier.kind === ts.SyntaxKind.Identifier) {
-    return ts.createQualifiedName(id, qualifier);
-  } else {
-    return ts.createQualifiedName(
-      prependIdentifier(id, qualifier.left),
-      qualifier.right,
-    );
-  }
-}
-
 export function printEntityName(type: ts.EntityName): string {
   if (type.kind === ts.SyntaxKind.QualifiedName) {
     return (
@@ -624,25 +608,8 @@ export const printType = withEnv<any, [any], string>(
         // @ts-expect-error todo(flow->ts)
         return type.text;
 
-      case ts.SyntaxKind.ImportType: {
+      case ts.SyntaxKind.ImportType:
         throw new Error("an ImportType survived");
-        const importSource = printType(type.argument);
-        const importSourceReduced = importSource.replace(/"/g, "");
-        const importedIdentifier = `$Flowgen$Import$${importSourceReduced}`;
-        (env.importHelpers ??= new Map()).set(
-          importedIdentifier,
-          `import * as ${importedIdentifier} from ${importSource};`,
-        );
-
-        const qualifiedName = prependIdentifier(
-          ts.createIdentifier(importedIdentifier),
-          type.qualifier,
-        );
-        const printed = printType(
-          ts.createTypeReferenceNode(qualifiedName, type.typeArguments),
-        );
-        return `${type.qualifier ? "" : "typeof "}${printed}`;
-      }
 
       case ts.SyntaxKind.FirstTypeNode:
         return printers.common.literalType(type);
