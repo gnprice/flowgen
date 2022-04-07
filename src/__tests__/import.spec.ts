@@ -3,7 +3,7 @@ import "../test-matchers";
 
 it("should handle dynamic imports", () => {
   const ts = `
-// type A = import('react'); // TODO hmm, why no typeof?
+type A = import('react');
 type B = import('react').ComponentType<{}>;
 type C = import('react').ReactNode;
 type D = import('zlib').Zlib;

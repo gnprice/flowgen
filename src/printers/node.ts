@@ -670,7 +670,7 @@ export const printType = withEnv<any, [any], string>(
 
           //$todo
           fixDefaultTypeArguments(symbol, type);
-          // console.log({ symbol, type, name: type.typeName });
+          // console.log({ symbol });
           const isRenamed = renames(symbol, type);
           if (!isRenamed) {
             //$todo weird union errors
@@ -682,6 +682,7 @@ export const printType = withEnv<any, [any], string>(
           }
 
           const getAdjustedType = targetSymbol => {
+            // console.log({ symbol, targetSymbol });
             const isTypeImport =
               symbol &&
               symbol.declarations &&
@@ -707,6 +708,7 @@ export const printType = withEnv<any, [any], string>(
             return printers.declarations.typeReference(type, !targetSymbol);
           };
 
+          // console.log({ symbol });
           // if importing an enum, we have to change how the type is used across the file
           if (
             symbol &&

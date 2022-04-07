@@ -172,17 +172,28 @@ export function importTypeToImportDeclaration() {
           );
         }
 
-        const qualifiedName = prependIdentifier(
-          ctx,
-          identifier,
-          node.qualifier,
-        );
-        const replaced = ctx.factory.createTypeReferenceNode(
-          qualifiedName,
-          node.typeArguments,
-        );
-        // console.log({ node, replaced });
-        return replaced;
+        if (!node.qualifier) {
+          // The reference is to the module as a whole, as a type.
+          // Must need a `typeof`.
+          if (node.typeArguments)
+            throw new Error(
+              "impossible syntax: type arguments applied to a module",
+            );
+          return ctx.factory.createTypeOfExpression(identifier);
+        } else {
+          // The reference is to something inside the module.
+          const qualifiedName = prependIdentifier(
+            ctx,
+            identifier,
+            node.qualifier,
+          );
+          const replaced = ctx.factory.createTypeReferenceNode(
+            qualifiedName,
+            node.typeArguments,
+          );
+          // console.log({ node, replaced });
+          return replaced;
+        }
       }
 
       if (ts.isSourceFile(node)) {

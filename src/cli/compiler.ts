@@ -94,6 +94,7 @@ export default {
           compilerOptions,
         ).transformed[0];
         const ss = ts.createPrinter().printFile(tt);
+        // console.log(ss);
         return createSourceFile("/dev/null", ss, languageVersion, true);
       }
       return oldSourceFile(file, languageVersion);
@@ -103,6 +104,12 @@ export default {
 
     checker.current = program.getTypeChecker();
     const sourceFile = program.getSourceFile("file.ts");
+    // const node = sourceFile.statements[2].type.typeName;
+    // console.log(
+    //   node,
+    //   checker.current.getSymbolsInScope(node, undefined),
+    //   checker.current.getSymbolAtLocation(node),
+    // );
 
     if (!sourceFile) return "";
 
