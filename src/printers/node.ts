@@ -637,9 +637,10 @@ export const printType = withEnv<any, [any], string>(
           ts.createIdentifier(importedIdentifier),
           type.qualifier,
         );
-        return printType(
+        const printed = printType(
           ts.createTypeReferenceNode(qualifiedName, type.typeArguments),
         );
+        return `${type.qualifier ? "" : "typeof "}${printed}`;
       }
 
       case ts.SyntaxKind.FirstTypeNode:

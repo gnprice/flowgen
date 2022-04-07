@@ -12,4 +12,8 @@ exports[`should handle bounded polymorphism 1`] = `
 "
 `;
 
-exports[`should handle maybe & nullable type 1`] = `"declare var a: string | null | void;"`;
+exports[`should handle maybe & nullable type 1`] = `
+"
+
+declare var a: string | null | void;"
+`;
