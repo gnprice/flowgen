@@ -360,6 +360,11 @@ export function getTypeofFullyQualifiedName(
 
 export function printFlowGenHelper(env): string {
   let helpers = "";
+
+  if (env.importHelpers) {
+    helpers += [...env.importHelpers.values()].join("\n");
+  }
+
   if (env.conditionalHelpers) {
     helpers += `
 // see https://gist.github.com/thecotne/6e5969f4aaf8f253985ed36b30ac9fe0
@@ -603,15 +608,23 @@ export const printType = withEnv<any, [any], string>(
         // @ts-expect-error todo(flow->ts)
         return type.text;
 
-      case ts.SyntaxKind.ImportType:
+      case ts.SyntaxKind.ImportType: {
+        const importSource = printType(type.argument);
+        const importSourceReduced = importSource.replace(/"/g, "");
+        const importedIdentifier = `$Flowgen$Import$${importSourceReduced}`;
+        (env.importHelpers ??= new Map()).set(
+          importedIdentifier,
+          `import * as ${importedIdentifier} from ${importSource};`,
+        );
         // @ts-expect-error todo(flow->ts)
         if (type.qualifier?.escapedText) {
-          return `$PropertyType<$Exports<${printType(
-            type.argument,
+          return `$PropertyType<${
+            importedIdentifier
             // @ts-expect-error todo(flow->ts)
-          )}>, ${JSON.stringify(type.qualifier.escapedText)}>`;
+          }, ${JSON.stringify(type.qualifier.escapedText)}>`;
         }
-        return `$Exports<${printType(type.argument)}>`;
+        return importedIdentifier;
+      }
 
       case ts.SyntaxKind.FirstTypeNode:
         return printers.common.literalType(type);
