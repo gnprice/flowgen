@@ -1,7 +1,9 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`should handle dynamic imports 1`] = `
-"import $Flowgen$Import$zlib from \\"zlib\\";
+"import * as $Flowgen$Import$react from \\"react\\";
+import * as $Flowgen$Import$zlib from \\"zlib\\";
+declare type B = $Flowgen$Import$react.ComponentType<{ ... }>;
 declare type D = $Flowgen$Import$zlib.Zlib;
 declare type Z = number;
 "

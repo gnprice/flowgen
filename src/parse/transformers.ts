@@ -1,6 +1,7 @@
 import * as ts from "typescript";
 import { stripDetailsFromTree } from "./ast";
 import type { Options } from "../options";
+import factory from "../nodes/factory";
 
 function updatePos<T extends ts.Node>(node: T) {
   // @ts-expect-error todo: modifying "readonly" property
@@ -157,10 +158,15 @@ export function importTypeToImportDeclaration() {
         if (!imports.has(importedName)) {
           imports.set(
             importedName,
+            // import * as ${identifier} from ${node.argument};
             ctx.factory.createImportDeclaration(
-              [],
-              [],
-              ctx.factory.createImportClause(false, identifier, undefined),
+              undefined,
+              undefined,
+              ctx.factory.createImportClause(
+                false,
+                undefined,
+                ctx.factory.createNamespaceImport(identifier),
+              ),
               node.argument.literal,
             ),
           );
@@ -176,8 +182,7 @@ export function importTypeToImportDeclaration() {
           node.typeArguments,
         );
         // console.log({ node, replaced });
-        return qualifiedName; // no crash
-        // return replaced; // TODO crashes
+        return replaced;
       }
 
       if (ts.isSourceFile(node)) {
@@ -185,6 +190,7 @@ export function importTypeToImportDeclaration() {
         if (!imports.size) {
           return visited;
         }
+        // console.log(imports);
         return ctx.factory.updateSourceFile(visited, [
           ...imports.values(),
           ...visited.statements,

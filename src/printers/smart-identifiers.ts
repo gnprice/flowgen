@@ -60,6 +60,7 @@ const setGlobalName = (type: any, _symbol): boolean => {
 };
 
 export function renames(symbol: ts.Symbol | void, type: any): boolean {
+  // console.log({ symbol, type });
   if (!symbol) return false;
   if (!symbol.declarations) return false;
   // todo(flow->ts)
