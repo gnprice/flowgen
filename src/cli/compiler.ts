@@ -52,7 +52,7 @@ const getTransformers = (options?: Options) => [
   legacyModules(),
   importEqualsTransformer(),
   declarationFileTransform(options),
-  importTypeToImportDeclaration,
+  importTypeToImportDeclaration(),
 ];
 
 /**
