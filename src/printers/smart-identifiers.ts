@@ -108,7 +108,6 @@ export function rewriteNode(node: ts.Node, checker: ts.TypeChecker): ts.Node {
       const parentName = parentDecl.name.text;
 
       // Rewrite React.RefAttributes, expanding its definition.
-      // TODO: Perhaps also delete any imports of it; that'd be a nice touch.
       if (
         parentName === "React" &&
         type.symbol.name === "RefAttributes" &&
@@ -126,6 +125,16 @@ export function rewriteNode(node: ts.Node, checker: ts.TypeChecker): ts.Node {
     }
     return node;
   } else if (ts.isImportSpecifier(node)) {
+    const name = (node.propertyName ?? node.name).text;
+    const source = (
+      node.parent.parent.parent.moduleSpecifier as ts.StringLiteral
+    ).text;
+
+    // Delete imports of React.RefAttributes.  (Above, we rewrite away any
+    // uses of it.)
+    if (source === "react" && name === "RefAttributes") {
+      return null;
+    }
     return node;
   }
   return node;

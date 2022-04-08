@@ -13,13 +13,10 @@ declare class Component mixins React.Component<Props> {
 "
 `;
 
-exports[`should handle react types 1`] = `
-"import type { Node, Element, RefAttributes } from \\"react\\";
+exports[`should handle react types React.RefAttributes 1`] = `
+"import type { Node } from \\"react\\";
+import type {} from \\"react\\";
 import * as React from \\"react\\";
-declare function s(node: Node): void;
-declare function s(node: React.Node): void;
-declare function s(node: Element<\\"div\\">): void;
-declare function s(node: React.Element<\\"div\\">): void;
 declare class C {}
 declare type A = {
   +ref: number,
@@ -37,5 +34,15 @@ declare type BB = {
   +ref: C,
   ...
 };
+"
+`;
+
+exports[`should handle react types pure renames 1`] = `
+"import type { Node, Element } from \\"react\\";
+import * as React from \\"react\\";
+declare function s(node: Node): void;
+declare function s(node: React.Node): void;
+declare function s(node: Element<\\"div\\">): void;
+declare function s(node: React.Element<\\"div\\">): void;
 "
 `;

@@ -654,7 +654,7 @@ export const printType = withEnv<any, [any], string>(
 
           const rewritten = rewriteNode(type, checker.current);
           if (rewritten !== type) {
-            return printType(rewritten);
+            return rewritten ? printType(rewritten) : "";
           }
 
           const getAdjustedType = targetSymbol => {
@@ -854,14 +854,14 @@ export const printType = withEnv<any, [any], string>(
 
       case ts.SyntaxKind.ImportSpecifier:
         if (checker.current) {
+          const rewritten = rewriteNode(type, checker.current);
+          if (rewritten !== type) {
+            return rewritten ? printType(rewritten) : "";
+          }
+
           //$todo some weird union errors
           const symbol = checker.current.getSymbolAtLocation(type.name);
           renames(symbol, type);
-
-          const rewritten = rewriteNode(type, checker.current);
-          if (rewritten !== type) {
-            return printType(rewritten);
-          }
         }
         return printers.relationships.importExportSpecifier(type);
 
