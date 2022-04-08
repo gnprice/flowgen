@@ -122,7 +122,7 @@ export function rewriteNode(node: ts.Node, checker: ts.TypeChecker): ts.Node {
           ts.createPropertySignature(
             [ts.createModifier(ts.SyntaxKind.ReadonlyKeyword)],
             "ref",
-            undefined,
+            ts.createToken(ts.SyntaxKind.QuestionToken),
             node.typeArguments[0],
           ),
         ]);
