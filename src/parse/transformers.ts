@@ -263,3 +263,29 @@ export function importTypeToImportDeclaration() {
     return (sf: ts.SourceFile) => ts.visitNode(sf, visitor(ctx));
   };
 }
+
+/**
+ * Expand some TS-specific React type aliases to a more compatible form.
+ *
+ * See also the transformations done on individual names, controlled in
+ * `src/printers/smart-identifiers.ts`.
+ */
+export function expandReactTypes(
+  program: ts.Program,
+): ts.TransformerFactory<ts.SourceFile> {
+  const checker = program.getTypeChecker();
+  function visitor(ctx: ts.TransformationContext) {
+    const visitor: ts.Visitor = node => {
+      if (ts.isTypeReferenceNode(node) && ts.isQualifiedName(node.typeName)) {
+        console.log(node.typeName);
+        const symbol = checker.getSymbolAtLocation(node.typeName);
+        // const decl = symbol.declarations[0];
+        // console.log(checker.getTypeAtLocation(node.typeName));
+        // return node;
+      }
+      return ts.visitEachChild(node, visitor, ctx);
+    };
+    return visitor;
+  }
+  return ctx => sf => ts.visitNode(sf, visitor(ctx));
+}

@@ -1,14 +1,21 @@
 import { compiler, beautify } from "..";
 import "../test-matchers";
 
+Error.stackTraceLimit = 20;
+
 it("should handle react types", () => {
   const ts = `
-import type {ReactNode, ReactElement} from 'react'
+import type {ReactNode, ReactElement, RefAttributes} from 'react'
 import * as React from 'react'
 declare function s(node: ReactNode): void;
 declare function s(node: React.ReactNode): void;
 declare function s(node: ReactElement<'div'>): void;
 declare function s(node: React.ReactElement<'div'>): void;
+
+type A = React.RefAttributes<number>;
+type AA = RefAttributes<number>;
+type B = React.RefAttributes<React.Component<{ x: string }>>;
+type BB = RefAttributes<React.Component<{ x: string }>>;
 `;
   const result = compiler.compileDefinitionString(ts, { quiet: true });
   expect(beautify(result)).toMatchSnapshot();

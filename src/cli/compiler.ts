@@ -19,6 +19,7 @@ import {
   legacyModules,
   declarationFileTransform,
   importTypeToImportDeclaration,
+  expandReactTypes,
 } from "../parse/transformers";
 import { recursiveWalkTree } from "../parse";
 import { printFlowGenHelper } from "../printers/node";
@@ -100,7 +101,15 @@ export default {
       return oldSourceFile(file, languageVersion);
     };
 
-    const program = createProgram(["file.ts"], compilerOptions, compilerHost);
+    let program = createProgram(["file.ts"], compilerOptions, compilerHost);
+    program = createProgram(["file.ts"], compilerOptions, {
+      ...compilerHost,
+      getSourceFile: (file, languageVersion) => {
+        const prev = compilerHost.getSourceFile(file, languageVersion);
+        return transform(prev, [expandReactTypes(program)], compilerOptions)
+          .transformed[0];
+      },
+    });
 
     checker.current = program.getTypeChecker();
     const sourceFile = program.getSourceFile("file.ts");
@@ -156,7 +165,9 @@ export default {
       return oldSourceFile(file, languageVersion);
     };
 
-    const program = createProgram([path], compilerOptions, compilerHost);
+    let program = createProgram([path], compilerOptions, compilerHost);
+    // program = expandReactTypes(program)()
+    transform(program, []);
 
     checker.current = program.getTypeChecker();
     const sourceFile = program.getSourceFile(path);

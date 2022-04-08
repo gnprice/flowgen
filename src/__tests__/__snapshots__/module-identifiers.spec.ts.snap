@@ -14,11 +14,25 @@ declare class Component mixins React.Component<Props> {
 `;
 
 exports[`should handle react types 1`] = `
-"import type { Node, Element } from \\"react\\";
+"import type { Node, Element, RefAttributes } from \\"react\\";
 import * as React from \\"react\\";
 declare function s(node: Node): void;
 declare function s(node: React.Node): void;
 declare function s(node: Element<\\"div\\">): void;
 declare function s(node: React.Element<\\"div\\">): void;
+declare type A = React.RefAttributes<number>;
+declare type AA = RefAttributes<number>;
+declare type B = React.RefAttributes<
+  React.Component<{
+    x: string,
+    ...
+  }>
+>;
+declare type BB = RefAttributes<
+  React.Component<{
+    x: string,
+    ...
+  }>
+>;
 "
 `;
