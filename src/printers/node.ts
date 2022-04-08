@@ -654,7 +654,7 @@ export const printType = withEnv<any, [any], string>(
 
           const realType = checker.current.getTypeAtLocation(type.typeName);
           const rewritten = rewriteReference(type, realType);
-          if (rewritten) {
+          if (rewritten !== type) {
             return printType(rewritten);
           }
 

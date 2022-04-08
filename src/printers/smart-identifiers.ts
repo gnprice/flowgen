@@ -91,12 +91,12 @@ export function renames(symbol: ts.Symbol | void, type: any): boolean {
 }
 
 export function rewriteReference(
-  typeNode: ts.TypeReferenceNode,
+  node: ts.TypeReferenceNode,
   type: ts.Type,
-): ts.Node | null {
-  if (!type) return null;
+): ts.Node {
+  if (!type) return node;
   const parentDecl = type.symbol?.parent?.declarations[0];
-  if (!parentDecl) return null;
+  if (!parentDecl) return node;
   // console.log(
   //   type.id,
   //   type.symbol.escapedName,
@@ -113,19 +113,19 @@ export function rewriteReference(
     if (
       parentName === "React" &&
       type.symbol.name === "RefAttributes" &&
-      typeNode.typeArguments.length === 1
+      node.typeArguments.length === 1
     ) {
       return ts.createTypeLiteralNode([
         ts.createPropertySignature(
           [ts.createModifier(ts.SyntaxKind.ReadonlyKeyword)],
           "ref",
           undefined,
-          typeNode.typeArguments[0],
+          node.typeArguments[0],
         ),
       ]);
     }
   }
-  return null;
+  return node;
 }
 
 export function getLeftMostEntityName(type: ts.EntityName) {
