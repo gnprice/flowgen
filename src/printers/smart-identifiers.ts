@@ -123,6 +123,10 @@ export function rewriteNode(node: ts.Node, checker: ts.TypeChecker): ts.Node {
             [ts.createModifier(ts.SyntaxKind.ReadonlyKeyword)],
             "ref",
             ts.createToken(ts.SyntaxKind.QuestionToken),
+            // TODO This is wrong -- should be React$Ref<T> or somesuch.
+            //   ... Perhaps React$Ref<any>.  These React ref types are
+            //   kind of a tangle.
+            // https://flow.org/try/#0JYWwDg9gTgLgBAKjgQwM5wEoFNkGN4BmUEIcA5FDvmQNwBQdA9I3AMqhgA2wBwWAJnCIk4MABZY4ANT4B3OPyy8AdsBjAIyuMC3jJlPDAC0y5OoBukgCqsFSnWo3LUAOjqLcnZJVEBPMJIyWLIACsRg6AC8cADecKgwvpxYAPwAXPEwUDoA5nAAvvQeXj6eaOhB8lgAHjBYyvzo2IYuAMIkkMr1MAA8lWEQEQB8sfkMzHBWYsDoWcjOXnXo3HVQyJycvnAAFMoQfgEQBCj8ivwAlAA0KA2iYmZwstAA1ugqWG4TldroyHBlqFQ11Q+zUZHQASgBCw+E2KFwuCwYBgyAARskUL8Dh86IkAnAAIJwaKVehMFgAIQArvA9FodHdJIYqes4AZ8CYzMBLPEIFSoIjrno7CpHJofmlyXBpbhNAlpHIMs18C4CaiEmt8O1wJpuj0pdLpf1wkCDYblTAXABRZIgbrYAg9PFYI4K4IAOS5lm1nW6Q0uZpG0QtLgI0Fk3n4Du22zAJoyxsGQKE4cjAgd52JIxiZulE0AZATkqXuiDyb4zFBwczrKmScQPEDILZ7eCopn-LyAuBGIzaLQEQxC+7wGbKMiWqWsUEj1Bj+B4RHItEYtCV53XVE08jO12VMg-T6MKUACSwlHBldQoCpiyccFd9ZHWhsktlznglQATEqqJafbrlBgKx-CwPo5AGYZiTdWQyWdOAKSgr8aDgCYz2IKAGDggkiWiHdjlJXEQPghDcJA3c5E-ehtmqDJsPOWiszgaoqJowl6MJHCRmYuhqNogl2IpEiuJYjJBPY7DGO4hhJw4bheAEIRiFIYVmVZb5FFFdRNDcOgakgWBsTgT0LCwABZLBxAgRooJzaV0X5bZ2PMCBgH4ANpTDXAqVQRyMmc1z3PiCzjO5LAIJ80wTPCjIAHlUQAKxhGAnJcty6GlFxMroQpdOqfTaSI48IASf8ukAnorCDTBf1VdU5i1DoAN6KxrgAEmafgYuUTYehCyxzMsxohiGMlim8SRqygaC+qwUrugyIqSsasrekTYZRphEoJu8aCAGYfxaNUNUMObyvSw01tNQ1qpaG0sDtQCHSdMj8LkGbTpgf1zpGzCiNaRC5F25DUKgdCGFjeNoPCzNImzc6JjfeVKAIA6VSekM7oemAnrwvbhqgkNcAMOpo3OegZTleBkYJmqiZwEmlEc8m2SUFwvNB7oUhceyoCZlCWAgZ54ZYZG2f5ShAK5vZnHqVAsD5hHkG8rB0DQ6BzsoGB+S0MDgl22JMpcOMk3yFmCEiGJkdNxgfrGIA
             node.typeArguments[0],
           ),
         ]);

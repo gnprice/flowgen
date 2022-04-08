@@ -13,6 +13,21 @@ declare class Component mixins React.Component<Props> {
 "
 `;
 
+exports[`should handle react types apply typeof to component types 1`] = `
+"import * as React from \\"react\\";
+declare type ViewProps = {
+  style?: string,
+  ...
+};
+declare class ViewComponent mixins React.Component<ViewProps> {}
+declare var ViewBase: typeof ViewComponent;
+declare class View mixins ViewBase {}
+declare type A = View;
+declare var View2: React.ComponentType<ViewProps>;
+declare type B = View2;
+"
+`;
+
 exports[`should handle react types pure renames 1`] = `
 "import type { Node, Element } from \\"react\\";
 import * as React from \\"react\\";
@@ -28,21 +43,16 @@ exports[`should handle react types rewrite away React.RefAttributes 1`] = `
 import type {} from \\"react\\";
 import * as React from \\"react\\";
 import * as RenamedAct from \\"react\\";
-declare class C {}
 declare type A = {
   +ref?: number,
   ...
 };
-declare type AA = {
+declare type B = {
   +ref?: number,
   ...
 };
-declare type B = {
-  +ref?: C,
-  ...
-};
-declare type BB = {
-  +ref?: C,
+declare type C = {
+  +ref?: number,
   ...
 };
 "
