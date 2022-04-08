@@ -5,7 +5,11 @@ import * as printers from "./index";
 import { checker } from "../checker";
 import * as logger from "../logger";
 import { withEnv } from "../env";
-import { renames, getLeftMostEntityName } from "./smart-identifiers";
+import {
+  renames,
+  getLeftMostEntityName,
+  rewriteNode,
+} from "./smart-identifiers";
 import { printErrorMessage } from "../errors/error-message";
 import { opts } from "../options";
 
@@ -652,6 +656,11 @@ export const printType = withEnv<any, [any], string>(
             );
           }
 
+          const rewritten = rewriteNode(type, checker.current);
+          if (rewritten !== type) {
+            return rewritten ? printType(rewritten) : "";
+          }
+
           const getAdjustedType = targetSymbol => {
             const isTypeImport =
               symbol &&
@@ -847,6 +856,11 @@ export const printType = withEnv<any, [any], string>(
 
       case ts.SyntaxKind.ImportSpecifier:
         if (checker.current) {
+          const rewritten = rewriteNode(type, checker.current);
+          if (rewritten !== type) {
+            return rewritten ? printType(rewritten) : "";
+          }
+
           //$todo some weird union errors
           const symbol = checker.current.getSymbolAtLocation(type.name);
           renames(symbol, type);

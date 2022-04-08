@@ -85,6 +85,44 @@ export function renames(symbol: ts.Symbol | void, type: any): boolean {
   return false;
 }
 
+/**
+ * Rewrite a node just before printing, when necessary.
+ *
+ * This handles things like names that exist in the React TS type
+ * definitions but have no counterpart in the React Flow type definitions.
+ * (For simpler cases where just the name has to change, `renames` does the
+ * job.)
+ *
+ * This can return:
+ *  * The same node it's passed, in which case we go ahead and print it.
+ *  * A different node, in which case we recursively print that instead.
+ *  * `null`, in which case we print nothing instead.
+ */
+export function rewriteNode(node: ts.Node, checker: ts.TypeChecker): ts.Node {
+  if (ts.isTypeReferenceNode(node)) {
+    const type = checker.getTypeAtLocation(node.typeName);
+    if (!type) return node;
+    const parentDecl = type.symbol?.parent?.declarations[0];
+    if (!parentDecl) return node;
+    if (ts.isModuleDeclaration(parentDecl)) {
+      // const parentName = parentDecl.name.text;
+      //
+      // TODO do something
+    }
+    return node;
+  } else if (ts.isImportSpecifier(node)) {
+    // const name = (node.propertyName ?? node.name).text;
+    // const source = (
+    //   node.parent.parent.parent.moduleSpecifier as ts.StringLiteral
+    // ).text;
+
+    // TODO do something
+
+    return node;
+  }
+  return node;
+}
+
 export function getLeftMostEntityName(type: ts.EntityName) {
   if (type.kind === ts.SyntaxKind.QualifiedName) {
     return type.left.kind === ts.SyntaxKind.Identifier
