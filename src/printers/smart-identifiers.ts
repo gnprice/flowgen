@@ -92,8 +92,9 @@ export function renames(symbol: ts.Symbol | void, type: any): boolean {
 
 export function rewriteReference(
   node: ts.TypeReferenceNode,
-  type: ts.Type,
+  checker: ts.TypeChecker,
 ): ts.Node {
+  const type = checker.getTypeAtLocation(node.typeName);
   if (!type) return node;
   const parentDecl = type.symbol?.parent?.declarations[0];
   if (!parentDecl) return node;
