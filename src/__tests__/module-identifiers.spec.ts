@@ -23,11 +23,12 @@ declare function s(node: React.ReactElement<'div'>): void;
 import type {ReactNode, RefAttributes as RA} from 'react'
 import type {RefAttributes} from 'react'
 import * as React from 'react'
+import * as RenamedAct from 'react'
 
 class C {};
 type A = React.RefAttributes<number>;
 type AA = RA<number>;
-type B = React.RefAttributes<C>;
+type B = RenamedAct.RefAttributes<C>;
 type BB = RefAttributes<C>;
 `;
     const result = compiler.compileDefinitionString(ts, { quiet: true });
