@@ -102,6 +102,7 @@ export default {
     };
 
     let program = createProgram(["file.ts"], compilerOptions, compilerHost);
+    /*
     program = createProgram(["file.ts"], compilerOptions, {
       ...compilerHost,
       getSourceFile: (file, languageVersion) => {
@@ -110,6 +111,7 @@ export default {
           .transformed[0];
       },
     });
+    */
 
     checker.current = program.getTypeChecker();
     const sourceFile = program.getSourceFile("file.ts");
