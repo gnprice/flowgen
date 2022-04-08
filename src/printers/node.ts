@@ -8,7 +8,7 @@ import { withEnv } from "../env";
 import {
   renames,
   getLeftMostEntityName,
-  rewriteReference,
+  rewriteNode,
 } from "./smart-identifiers";
 import { printErrorMessage } from "../errors/error-message";
 import { opts } from "../options";
@@ -652,7 +652,7 @@ export const printType = withEnv<any, [any], string>(
             );
           }
 
-          const rewritten = rewriteReference(type, checker.current);
+          const rewritten = rewriteNode(type, checker.current);
           if (rewritten !== type) {
             return printType(rewritten);
           }
@@ -857,6 +857,11 @@ export const printType = withEnv<any, [any], string>(
           //$todo some weird union errors
           const symbol = checker.current.getSymbolAtLocation(type.name);
           renames(symbol, type);
+
+          const rewritten = rewriteNode(type, checker.current);
+          if (rewritten !== type) {
+            return printType(rewritten);
+          }
         }
         return printers.relationships.importExportSpecifier(type);
 

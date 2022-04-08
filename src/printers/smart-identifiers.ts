@@ -90,41 +90,43 @@ export function renames(symbol: ts.Symbol | void, type: any): boolean {
   return false;
 }
 
-export function rewriteReference(
-  node: ts.TypeReferenceNode,
-  checker: ts.TypeChecker,
-): ts.Node {
-  const type = checker.getTypeAtLocation(node.typeName);
-  if (!type) return node;
-  const parentDecl = type.symbol?.parent?.declarations[0];
-  if (!parentDecl) return node;
-  // console.log(
-  //   type.id,
-  //   type.symbol.escapedName,
-  //   type.symbol.id,
-  //   type.symbol.parent?.escapedName,
-  //   // type.symbol.parent.declarations[0],
-  //   ts.SyntaxKind[type.symbol.parent?.declarations[0]?.kind],
-  // );
-  if (ts.isModuleDeclaration(parentDecl)) {
-    const parentName = parentDecl.name.text;
+export function rewriteNode(node: ts.Node, checker: ts.TypeChecker): ts.Node {
+  if (ts.isTypeReferenceNode(node)) {
+    const type = checker.getTypeAtLocation(node.typeName);
+    if (!type) return node;
+    const parentDecl = type.symbol?.parent?.declarations[0];
+    if (!parentDecl) return node;
+    // console.log(
+    //   type.id,
+    //   type.symbol.escapedName,
+    //   type.symbol.id,
+    //   type.symbol.parent?.escapedName,
+    //   // type.symbol.parent.declarations[0],
+    //   ts.SyntaxKind[type.symbol.parent?.declarations[0]?.kind],
+    // );
+    if (ts.isModuleDeclaration(parentDecl)) {
+      const parentName = parentDecl.name.text;
 
-    // Rewrite React.RefAttributes, expanding its definition.
-    // TODO: Perhaps also delete any imports of it; that'd be a nice touch.
-    if (
-      parentName === "React" &&
-      type.symbol.name === "RefAttributes" &&
-      node.typeArguments.length === 1
-    ) {
-      return ts.createTypeLiteralNode([
-        ts.createPropertySignature(
-          [ts.createModifier(ts.SyntaxKind.ReadonlyKeyword)],
-          "ref",
-          undefined,
-          node.typeArguments[0],
-        ),
-      ]);
+      // Rewrite React.RefAttributes, expanding its definition.
+      // TODO: Perhaps also delete any imports of it; that'd be a nice touch.
+      if (
+        parentName === "React" &&
+        type.symbol.name === "RefAttributes" &&
+        node.typeArguments.length === 1
+      ) {
+        return ts.createTypeLiteralNode([
+          ts.createPropertySignature(
+            [ts.createModifier(ts.SyntaxKind.ReadonlyKeyword)],
+            "ref",
+            undefined,
+            node.typeArguments[0],
+          ),
+        ]);
+      }
     }
+    return node;
+  } else if (ts.isImportSpecifier(node)) {
+    return node;
   }
   return node;
 }
