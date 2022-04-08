@@ -90,20 +90,25 @@ export function renames(symbol: ts.Symbol | void, type: any): boolean {
   return false;
 }
 
+/**
+ * Rewrite a node just before printing, when necessary.
+ *
+ * This handles things like names that exist in the React TS type
+ * definitions but have no counterpart in the React Flow type definitions.
+ * (For simpler cases where just the name has to change, `renames` does the
+ * job.)
+ *
+ * This can return:
+ *  * The same node it's passed, in which case we go ahead and print it.
+ *  * A different node, in which case we recursively print that instead.
+ *  * `null`, in which case we print nothing instead.
+ */
 export function rewriteNode(node: ts.Node, checker: ts.TypeChecker): ts.Node {
   if (ts.isTypeReferenceNode(node)) {
     const type = checker.getTypeAtLocation(node.typeName);
     if (!type) return node;
     const parentDecl = type.symbol?.parent?.declarations[0];
     if (!parentDecl) return node;
-    // console.log(
-    //   type.id,
-    //   type.symbol.escapedName,
-    //   type.symbol.id,
-    //   type.symbol.parent?.escapedName,
-    //   // type.symbol.parent.declarations[0],
-    //   ts.SyntaxKind[type.symbol.parent?.declarations[0]?.kind],
-    // );
     if (ts.isModuleDeclaration(parentDecl)) {
       const parentName = parentDecl.name.text;
 

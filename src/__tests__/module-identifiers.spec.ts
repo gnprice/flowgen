@@ -18,8 +18,10 @@ declare function s(node: React.ReactElement<'div'>): void;
     expect(result).toBeValidFlowTypeDeclarations();
   });
 
-  test("React.RefAttributes", () => {
+  test("rewrite away React.RefAttributes", () => {
     const ts = `
+// Works correctly even if React or RefAttributes is renamed at import.
+// Deletes any RefAttributes import, to prevent a Flow error there.
 import type {ReactNode, RefAttributes as RA} from 'react'
 import type {RefAttributes} from 'react'
 import * as React from 'react'
