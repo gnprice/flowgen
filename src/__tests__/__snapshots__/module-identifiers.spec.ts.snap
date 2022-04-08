@@ -20,19 +20,22 @@ declare function s(node: Node): void;
 declare function s(node: React.Node): void;
 declare function s(node: Element<\\"div\\">): void;
 declare function s(node: React.Element<\\"div\\">): void;
-declare type A = React.RefAttributes<number>;
-declare type AA = RefAttributes<number>;
-declare type B = React.RefAttributes<
-  React.Component<{
-    x: string,
-    ...
-  }>
->;
-declare type BB = RefAttributes<
-  React.Component<{
-    x: string,
-    ...
-  }>
->;
+declare class C {}
+declare type A = {
+  +ref: number,
+  ...
+};
+declare type AA = {
+  +ref: number,
+  ...
+};
+declare type B = {
+  +ref: C,
+  ...
+};
+declare type BB = {
+  +ref: C,
+  ...
+};
 "
 `;

@@ -5,7 +5,11 @@ import * as printers from "./index";
 import { checker } from "../checker";
 import * as logger from "../logger";
 import { withEnv } from "../env";
-import { renames, getLeftMostEntityName } from "./smart-identifiers";
+import {
+  renames,
+  getLeftMostEntityName,
+  rewriteReference,
+} from "./smart-identifiers";
 import { printErrorMessage } from "../errors/error-message";
 import { opts } from "../options";
 
@@ -646,6 +650,12 @@ export const printType = withEnv<any, [any], string>(
               symbol,
               type.typeName,
             );
+          }
+
+          const realType = checker.current.getTypeAtLocation(type.typeName);
+          const rewritten = rewriteReference(type, realType);
+          if (rewritten) {
+            return printType(rewritten);
           }
 
           const getAdjustedType = targetSymbol => {

@@ -90,6 +90,44 @@ export function renames(symbol: ts.Symbol | void, type: any): boolean {
   return false;
 }
 
+export function rewriteReference(
+  typeNode: ts.TypeReferenceNode,
+  type: ts.Type,
+): ts.Node | null {
+  if (!type) return null;
+  const parentDecl = type.symbol?.parent?.declarations[0];
+  if (!parentDecl) return null;
+  // console.log(
+  //   type.id,
+  //   type.symbol.escapedName,
+  //   type.symbol.id,
+  //   type.symbol.parent?.escapedName,
+  //   // type.symbol.parent.declarations[0],
+  //   ts.SyntaxKind[type.symbol.parent?.declarations[0]?.kind],
+  // );
+  if (ts.isModuleDeclaration(parentDecl)) {
+    const parentName = parentDecl.name.text;
+
+    // Rewrite React.RefAttributes, expanding its definition.
+    // TODO: Perhaps also delete any imports of it; that'd be a nice touch.
+    if (
+      parentName === "React" &&
+      type.symbol.name === "RefAttributes" &&
+      typeNode.typeArguments.length === 1
+    ) {
+      return ts.createTypeLiteralNode([
+        ts.createPropertySignature(
+          [ts.createModifier(ts.SyntaxKind.ReadonlyKeyword)],
+          "ref",
+          undefined,
+          typeNode.typeArguments[0],
+        ),
+      ]);
+    }
+  }
+  return null;
+}
+
 export function getLeftMostEntityName(type: ts.EntityName) {
   if (type.kind === ts.SyntaxKind.QualifiedName) {
     return type.left.kind === ts.SyntaxKind.Identifier

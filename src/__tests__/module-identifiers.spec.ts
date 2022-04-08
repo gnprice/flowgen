@@ -12,10 +12,11 @@ declare function s(node: React.ReactNode): void;
 declare function s(node: ReactElement<'div'>): void;
 declare function s(node: React.ReactElement<'div'>): void;
 
+class C {};
 type A = React.RefAttributes<number>;
 type AA = RefAttributes<number>;
-type B = React.RefAttributes<React.Component<{ x: string }>>;
-type BB = RefAttributes<React.Component<{ x: string }>>;
+type B = React.RefAttributes<C>;
+type BB = RefAttributes<C>;
 `;
   const result = compiler.compileDefinitionString(ts, { quiet: true });
   expect(beautify(result)).toMatchSnapshot();
