@@ -8,13 +8,9 @@ const setImportedName = (
   decl: ts.Declaration,
 ): boolean => {
   const specifiers = ["react"];
-  const namespaces = ["React", "$Flowgen$Import$react"];
+  const namespaces = ["React"];
   const paths = (name: string) => {
-    if (
-      name === "react" ||
-      name === "React" ||
-      name === "$Flowgen$Import$react"
-    ) {
+    if (name === "react" || name === "React") {
       return {
         ReactNode: "Node",
         ReactElement: "Element",
