@@ -200,24 +200,22 @@ export function importTypeToImportDeclaration() {
           identifier = ctx.factory.createIdentifier(
             escapeNameAsIdentifierWithPrefix("$Flowgen$Import", importSource),
           );
-          const decl =
-            // import * as ${identifier} from ${node.argument};
-            ctx.factory.createImportDeclaration(
+          // Construct an import statement like this:
+          //   import * as ${identifier} from ${node.argument};
+          const decl = ctx.factory.createImportDeclaration(
+            undefined,
+            undefined,
+            ctx.factory.createImportClause(
+              false,
               undefined,
-              undefined,
-              ctx.factory.createImportClause(
-                false,
-                undefined,
-                ctx.factory.createNamespaceImport(identifier),
-              ),
-              node.argument.literal,
-            );
-          // console.log(decl.importClause.namedBindings.name);
+              ctx.factory.createNamespaceImport(identifier),
+            ),
+            node.argument.literal,
+          );
           imports.set(importSource, { identifier, decl });
         } else {
           identifier = imports.get(importSource).identifier;
         }
-        // console.log({ importSource, identifier });
 
         if (!node.qualifier) {
           // The reference is to the module as a whole, as a type.
@@ -241,7 +239,6 @@ export function importTypeToImportDeclaration() {
         if (!imports.size) {
           return visited;
         }
-        // console.log(imports);
         return ctx.factory.updateSourceFile(visited, [
           ...[...imports.values()].map(v => v.decl),
           ...visited.statements,
