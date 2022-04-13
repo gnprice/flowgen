@@ -2,6 +2,7 @@ import * as ts from "typescript";
 import { stripDetailsFromTree } from "./ast";
 import type { Options } from "../options";
 import factory from "../nodes/factory";
+import * as logger from "../logger";
 
 function updatePos<T extends ts.Node>(node: T) {
   // @ts-expect-error todo: modifying "readonly" property
@@ -191,8 +192,16 @@ export function importTypeToImportDeclaration() {
         if (
           !ts.isLiteralTypeNode(node.argument) ||
           !ts.isStringLiteral(node.argument.literal)
-        )
-          throw null; // TODO better exception
+        ) {
+          // TS (as of 4.6.2) gives an error if the argument to `import(…)`
+          // isn't a string literal, saying "String literal expected."
+          // So this case should be impossible.
+          logger.error(node, {
+            type: "UnexpectedTsSyntax",
+            description: "import(…) type with argument not a string literal",
+          });
+          return ts.visitEachChild(node, visitor, ctx);
+        }
 
         const importSource = node.argument.literal.text;
         let identifier;
