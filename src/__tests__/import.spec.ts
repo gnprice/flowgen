@@ -23,3 +23,13 @@ type B = import('@!-/./');
   expect(beautify(result)).toMatchSnapshot();
   // expect(result).toBeValidFlowTypeDeclarations(); // would need actual modules at those names
 });
+
+it("should handle import nested in type arguments of import", () => {
+  const ts = `
+type A = import("react").ComponentType<import("react").RefAttributes<any>>;
+type B = import("m").C<number, import("n").D>;
+`;
+  const result = compiler.compileDefinitionString(ts, { quiet: true });
+  expect(beautify(result)).toMatchSnapshot();
+  expect(result).toBeValidFlowTypeDeclarations();
+});
