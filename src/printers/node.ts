@@ -364,11 +364,6 @@ export function getTypeofFullyQualifiedName(
 
 export function printFlowGenHelper(env): string {
   let helpers = "";
-
-  if (env.importHelpers) {
-    helpers += [...env.importHelpers.values()].join("\n");
-  }
-
   if (env.conditionalHelpers) {
     helpers += `
 // see https://gist.github.com/thecotne/6e5969f4aaf8f253985ed36b30ac9fe0
