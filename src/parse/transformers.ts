@@ -229,17 +229,10 @@ export function importTypeToImportDeclaration() {
           return ctx.factory.createTypeOfExpression(identifier);
         } else {
           // The reference is to something inside the module.
-          const qualifiedName = prependIdentifier(
-            ctx,
-            identifier,
-            node.qualifier,
+          return ctx.factory.createTypeReferenceNode(
+            prependIdentifier(ctx, identifier, node.qualifier),
+            ts.visitNodes(node.typeArguments, visitor),
           );
-          const replaced = ctx.factory.createTypeReferenceNode(
-            qualifiedName,
-            node.typeArguments,
-          );
-          // console.log({ node, replaced });
-          return replaced;
         }
       }
 

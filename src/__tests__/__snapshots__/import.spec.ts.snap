@@ -11,6 +11,15 @@ declare type Z = number;
 "
 `;
 
+exports[`should handle import nested in type arguments of import 1`] = `
+"import * as $Flowgen$Import$react from \\"react\\";
+declare type A = $Flowgen$Import$react.ComponentType<{
+  +ref?: any,
+  ...
+}>;
+"
+`;
+
 exports[`should handle imports from odd names 1`] = `
 "import * as $Flowgen$Import$_2e__2e_ from \\"..\\";
 import * as $Flowgen$Import$_40__21__2d__2f__2e__2f_ from \\"@!-/./\\";
