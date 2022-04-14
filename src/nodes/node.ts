@@ -44,23 +44,6 @@ class Node<NodeType extends ts.Node = ts.Node> {
     }
   }
 
-  /**
-   * Used for overloading the props of some types
-   */
-  maybeAddMember(members: any | ReadonlyArray<any>): void {
-    const rawMembers: Array<ts.Node> | void = (this.raw as any).members;
-    if (!rawMembers) {
-      return;
-    }
-    if (Array.isArray(members)) {
-      members.forEach(member => {
-        rawMembers.push(stripDetailsFromTree(member));
-      });
-    } else {
-      rawMembers.push(stripDetailsFromTree(members));
-    }
-  }
-
   getChildren(): ReadonlyArray<Node> {
     return _.toArray(this.children);
   }

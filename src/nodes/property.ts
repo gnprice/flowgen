@@ -11,7 +11,7 @@ import Node from "./node";
 
 import * as printers from "../printers";
 import namespaceManager from "../namespace-manager";
-import { parseNameFromNode } from "../parse/ast";
+import { parseNameFromNode, stripDetailsFromTree } from "../parse/ast";
 
 type PropertyNode =
   | FunctionDeclaration
@@ -34,6 +34,24 @@ export default class Property extends Node<PropertyNode> {
 
   skipNode() {
     this.skip = true;
+  }
+
+  /**
+   * Used for overloading the props of some types
+   */
+  maybeAddMember(members: void | ReadonlyArray<ts.Node>): void {
+    if (!members) return;
+    if (
+      ts.isFunctionDeclaration(this.raw) ||
+      ts.isTypeAliasDeclaration(this.raw) ||
+      ts.isVariableStatement(this.raw)
+    )
+      return;
+    const rawMembers = this.raw.members;
+    members.forEach(member => {
+      // @ts-expect-error ts.NodeArray is read-only, but we push to it
+      rawMembers.push(stripDetailsFromTree(member));
+    });
   }
 
   print(namespace = "", mod = "root"): string {
