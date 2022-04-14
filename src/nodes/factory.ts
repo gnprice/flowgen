@@ -1,5 +1,6 @@
-import type { RawNode } from "./node";
+import ts from "typescript";
 
+import type { RawNode } from "./node";
 import type Node from "./node";
 import ImportNode from "./import";
 import ExportNode from "./export";
@@ -47,7 +48,7 @@ export class Factory {
   }
 
   createFunctionDeclaration(
-    node: RawNode,
+    node: ts.FunctionDeclaration,
     rawName: string,
     context: Node,
   ): void {

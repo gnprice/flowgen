@@ -57,7 +57,11 @@ const collectNode = (node: ts.Node, context: Node, factory: Factory): void => {
 
     case ts.SyntaxKind.FunctionDeclaration:
       // TODO: rewrite this
-      factory.createFunctionDeclaration(node, parseNameFromNode(node), context);
+      factory.createFunctionDeclaration(
+        node as ts.FunctionDeclaration,
+        parseNameFromNode(node),
+        context,
+      );
       break;
 
     case ts.SyntaxKind.InterfaceDeclaration:
