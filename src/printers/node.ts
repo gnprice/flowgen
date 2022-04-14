@@ -132,7 +132,7 @@ export function getLeftMostPropertyAccessExpression(
 
 export function getFullyQualifiedPropertyAccessExpression(
   symbol: ts.Symbol | undefined,
-  type: any,
+  type: ts.PropertyAccessExpression | ts.Identifier,
   delimiter = "$",
 ): string {
   if (checker.current) {
