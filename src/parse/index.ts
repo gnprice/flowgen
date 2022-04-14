@@ -1,5 +1,3 @@
-import type { RawNode } from "../nodes/node";
-
 import * as ts from "typescript";
 
 import Node from "../nodes/node";
@@ -10,45 +8,52 @@ import { parseNameFromNode, stripDetailsFromTree } from "./ast";
 import * as logger from "../logger";
 import { checker } from "../checker";
 
-const collectNode = (node: RawNode, context: Node, factory: Factory): void => {
+const collectModuleDeclaration = (
+  node: ts.ModuleDeclaration,
+  context: Node,
+  factory: Factory,
+): void => {
+  if (
+    // @ts-expect-error
+    node.flags === 4098 ||
+    (node.flags & ts.NodeFlags.Namespace) === ts.NodeFlags.Namespace
+  ) {
+    if (
+      (node.flags & ts.NodeFlags.GlobalAugmentation) ===
+      ts.NodeFlags.GlobalAugmentation
+    ) {
+      logger.error(node, { type: "UnsupportedGlobalAugmentation" });
+      const globalAugmentation = factory.createModuleNode(node, node.name.text);
+      context.addChild("module" + node.name.text, globalAugmentation);
+      traverseNode(node.body, globalAugmentation, factory);
+      return;
+    }
+    const namespace = factory.createNamespaceNode(
+      node,
+      node.name.text,
+      context,
+    );
+
+    traverseNode(node.body, namespace, factory);
+
+    context.addChildren("namespace" + node.name.text, namespace);
+    return;
+  } else {
+    const module = factory.createModuleNode(node, node.name.text);
+
+    context.addChild("module" + node.name.text, module);
+
+    traverseNode(node.body, module, factory);
+    return;
+  }
+};
+
+const collectNode = (node: ts.Node, context: Node, factory: Factory): void => {
   stripDetailsFromTree(node);
   switch (node.kind) {
     case ts.SyntaxKind.ModuleDeclaration:
-      if (
-        node.flags === 4098 ||
-        (node.flags & ts.NodeFlags.Namespace) === ts.NodeFlags.Namespace
-      ) {
-        if (
-          (node.flags & ts.NodeFlags.GlobalAugmentation) ===
-          ts.NodeFlags.GlobalAugmentation
-        ) {
-          logger.error(node, { type: "UnsupportedGlobalAugmentation" });
-          const globalAugmentation = factory.createModuleNode(
-            node,
-            node.name.text,
-          );
-          context.addChild("module" + node.name.text, globalAugmentation);
-          traverseNode(node.body, globalAugmentation, factory);
-          break;
-        }
-        const namespace = factory.createNamespaceNode(
-          node,
-          node.name.text,
-          context,
-        );
-
-        traverseNode(node.body, namespace, factory);
-
-        context.addChildren("namespace" + node.name.text, namespace);
-        break;
-      } else {
-        const module = factory.createModuleNode(node, node.name.text);
-
-        context.addChild("module" + node.name.text, module);
-
-        traverseNode(node.body, module, factory);
-        break;
-      }
+      collectModuleDeclaration(node as ts.ModuleDeclaration, context, factory);
+      break;
 
     case ts.SyntaxKind.FunctionDeclaration:
       // TODO: rewrite this
