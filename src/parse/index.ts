@@ -203,7 +203,7 @@ function createMakeNameCompatibleWithFlowTransformer(
     context: ts.TransformationContext,
   ) {
     const { factory } = context;
-    const visitor = (node: ts.Node): ts.Node | ts.Node[] => {
+    const visitor = (node: ts.Node): ts.Node => {
       if (ts.isTypeAliasDeclaration(node)) {
         const s = checker.current.getSymbolAtLocation(node.name);
         if (duplicatedSymbols.has(s)) {
@@ -252,8 +252,9 @@ function createMakeNameCompatibleWithFlowTransformer(
 }
 
 // In TypeScript you can have the same name for a variable and a type but not in FlowJs
-function makeNameCompatibleWithFlow(ast: any) {
+function makeNameCompatibleWithFlow(ast: ts.SourceFile): ts.SourceFile {
   const [duplicatedSymbols, usedNames] = findDuplicatedSymbolsAndUsedNames(ast);
+  // @ts-expect-error really does return a SourceFile
   return ts.transform(ast, [
     createMakeNameCompatibleWithFlowTransformer(
       new Set(duplicatedSymbols),
@@ -262,7 +263,7 @@ function makeNameCompatibleWithFlow(ast: any) {
   ]).transformed[0];
 }
 
-export function recursiveWalkTree(ast: any): ModuleNode {
+export function recursiveWalkTree(ast: ts.SourceFile): ModuleNode {
   const factory = NodeFactory.create();
 
   const root = factory.createModuleNode(null, "root");
