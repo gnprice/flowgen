@@ -129,28 +129,29 @@ const interfaceRecordType = (
   }
 };
 
-const classHeritageClause = withEnv<
-  { classHeritage?: boolean },
-  [ts.ExpressionWithTypeArguments],
-  string
->((env, type) => {
-  let ret: string;
-  env.classHeritage = true;
-  // TODO: refactor this
-  const symbol = checker.current.getSymbolAtLocation(type.expression);
-  printers.node.fixDefaultTypeArguments(symbol, type);
-  if (ts.isIdentifier(type.expression) && symbol) {
-    ret =
-      printers.node.getFullyQualifiedPropertyAccessExpression(
-        symbol,
-        type.expression,
-      ) + printers.common.generics(type.typeArguments);
-  } else {
-    ret = printers.node.printType(type);
-  }
-  env.classHeritage = false;
-  return ret;
-});
+const classHeritageClause = withEnv(
+  (
+    env: { classHeritage?: boolean },
+    type: ts.ExpressionWithTypeArguments,
+  ): string => {
+    let ret: string;
+    env.classHeritage = true;
+    // TODO: refactor this
+    const symbol = checker.current.getSymbolAtLocation(type.expression);
+    printers.node.fixDefaultTypeArguments(symbol, type);
+    if (ts.isIdentifier(type.expression) && symbol) {
+      ret =
+        printers.node.getFullyQualifiedPropertyAccessExpression(
+          symbol,
+          type.expression,
+        ) + printers.common.generics(type.typeArguments);
+    } else {
+      ret = printers.node.printType(type);
+    }
+    env.classHeritage = false;
+    return ret;
+  },
+);
 
 const interfaceHeritageClause = (type: ts.ExpressionWithTypeArguments) => {
   // TODO: refactor this

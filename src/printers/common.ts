@@ -198,8 +198,8 @@ const jsDocPrintTag = (tag): string => {
 };
 
 /** The node's jsdoc comments, if any and if the `jsdoc` option is enabled. */
-export const jsdoc = withEnv<{ tsdoc?: boolean }, [ts.Node], string>(
-  (env, node): string => {
+export const jsdoc = withEnv(
+  (env: { tsdoc?: boolean }, node: ts.Node): string => {
     if (!opts().jsdoc) return "";
 
     // @ts-expect-error The jsDoc property is internal, on ts.JSDocContainer.

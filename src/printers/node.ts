@@ -331,7 +331,9 @@ export function getTypeofFullyQualifiedName(
   }
 }
 
-export function printFlowGenHelper(env): string {
+export function printFlowGenHelper(env: {
+  conditionalHelpers?: boolean;
+}): string {
   let helpers = "";
   if (env.conditionalHelpers) {
     helpers += `
@@ -386,8 +388,8 @@ const printErrorType = (description: string, node: ts.Node) => {
   return `($FlowFixMe /* flowgen-error: ${description} */)`;
 };
 
-export const printType = withEnv<any, [ts.Node], string>(
-  (env: any, rawType: ts.Node): string => {
+export const printType = withEnv(
+  (env: { conditionalHelpers?: boolean }, rawType: ts.Node): string => {
     // debuggerif()
     //TODO: #6 No match found in SyntaxKind enum
 

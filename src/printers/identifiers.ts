@@ -58,9 +58,11 @@ const identifiers: { [name: string]: IdentifierResult } = {
   },
 };
 
-export const print = withEnv<any, [string], IdentifierResult>((env, kind) => {
-  if (env.classHeritage) return kind;
-  return Object.prototype.hasOwnProperty.call(identifiers, kind)
-    ? identifiers[kind]
-    : kind;
-});
+export const print = withEnv(
+  (env: { classHeritage?: boolean }, kind: string): IdentifierResult => {
+    if (env.classHeritage) return kind;
+    return Object.prototype.hasOwnProperty.call(identifiers, kind)
+      ? identifiers[kind]
+      : kind;
+  },
+);
