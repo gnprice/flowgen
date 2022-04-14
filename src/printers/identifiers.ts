@@ -5,7 +5,10 @@ import { opts } from "../options";
 import { withEnv } from "../env";
 import ts from "typescript";
 
-const printRecord = ([key, value]: [any, any], isInexact: boolean) => {
+const printRecord = (
+  [key, value]: [ts.TypeNode, ts.TypeNode],
+  isInexact: boolean,
+) => {
   const valueType = printers.node.printType(value);
 
   switch (key.kind) {
@@ -13,14 +16,16 @@ const printRecord = ([key, value]: [any, any], isInexact: boolean) => {
       return `{ ${printers.node.printType(key)}: ${valueType}${
         isInexact ? ", ..." : ""
       }}`;
-    case ts.SyntaxKind.UnionType:
-      if (key.types.every(t => t.kind === ts.SyntaxKind.LiteralType)) {
-        const fields = key.types.reduce((acc, t) => {
+    case ts.SyntaxKind.UnionType: {
+      const types = (key as ts.UnionTypeNode).types;
+      if (types.every(t => t.kind === ts.SyntaxKind.LiteralType)) {
+        const fields = types.reduce((acc, t) => {
           acc += `${printers.node.printType(t)}: ${valueType},\n`;
           return acc;
         }, "");
         return `{ ${fields}${isInexact ? "..." : ""}}`;
       }
+    }
     // Fallthrough
     default:
       return `{[key: ${printers.node.printType(key)}]: ${valueType}${
@@ -54,7 +59,7 @@ const identifiers: { [name: string]: IdentifierResult } = {
   Record: ([key, value]) => printRecord([key, value], opts().inexact),
   Omit: ([obj, keys]) => {
     return `$Diff<${printers.node.printType(obj)},${printRecord(
-      [keys, { kind: ts.SyntaxKind.AnyKeyword }],
+      [keys, ts.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword)],
       false,
     )}>`;
   },
