@@ -5,7 +5,7 @@ import { opts } from "../options";
 import { withEnv } from "../env";
 import ts from "typescript";
 
-const printRecord = ([key, value], isInexact: boolean) => {
+const printRecord = ([key, value]: [any, any], isInexact: boolean) => {
   const valueType = printers.node.printType(value);
 
   switch (key.kind) {
@@ -29,7 +29,9 @@ const printRecord = ([key, value], isInexact: boolean) => {
   }
 };
 
-type IdentifierResult = string | ((...args: any[]) => any);
+type IdentifierResult =
+  | string
+  | ((typeArguments: ts.NodeArray<ts.TypeNode>) => string);
 
 const identifiers: { [name: string]: IdentifierResult } = {
   ReadonlyArray: "$ReadOnlyArray",
@@ -38,20 +40,19 @@ const identifiers: { [name: string]: IdentifierResult } = {
   Readonly: "$ReadOnly",
   RegExpMatchArray: "RegExp$matchResult",
   NonNullable: "$NonMaybeType",
-  Partial: ([type]: any[]) => {
+  Partial: ([type]) => {
     const isInexact = opts().inexact;
     return `$Rest<${printers.node.printType(type)}, {${
       isInexact ? "..." : ""
     }}>`;
   },
-  ReturnType: (typeArguments: any[]) => {
+  ReturnType: typeArguments => {
     return `$Call<<R>((...args: any[]) => R) => R, ${printers.node.printType(
       typeArguments[0],
     )}>`;
   },
-  Record: ([key, value]: [any, any]) =>
-    printRecord([key, value], opts().inexact),
-  Omit: ([obj, keys]: [any, any]) => {
+  Record: ([key, value]) => printRecord([key, value], opts().inexact),
+  Omit: ([obj, keys]) => {
     return `$Diff<${printers.node.printType(obj)},${printRecord(
       [keys, { kind: ts.SyntaxKind.AnyKeyword }],
       false,
