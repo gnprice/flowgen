@@ -59,7 +59,7 @@ export const variableDeclaration = (node: ts.VariableStatement): string => {
     .join("\n");
 };
 
-export const interfaceType = <T>(
+export const interfaceType = <T extends ts.Node>(
   node: ts.InterfaceDeclaration | ts.ClassDeclaration | ts.TypeLiteralNode,
   nodeName: string,
   mergedNamespaceChildren: ReadonlyArray<Node<T>>,
@@ -296,7 +296,7 @@ export const typeReference = (
   );
 };
 
-export const classDeclaration = <T>(
+export const classDeclaration = <T extends ts.Node>(
   nodeName: string,
   node: ts.ClassDeclaration,
   mergedNamespaceChildren: ReadonlyArray<Node<T>>,

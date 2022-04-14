@@ -1,12 +1,12 @@
 import _ from "lodash";
-import type { Node as TSNode } from "typescript";
+import ts from "typescript";
 import { parseNameFromNode, stripDetailsFromTree } from "../parse/ast";
 
 import * as printers from "../printers";
 
 export type RawNode = any;
 
-class Node<NodeType = RawNode> {
+class Node<NodeType extends ts.Node = ts.Node> {
   children: {
     [key: string]: Node;
   };
@@ -48,7 +48,7 @@ class Node<NodeType = RawNode> {
    * Used for overloading the props of some types
    */
   maybeAddMember(members: any | ReadonlyArray<any>): void {
-    const rawMembers: Array<TSNode> | void = (this.raw as any).members;
+    const rawMembers: Array<ts.Node> | void = (this.raw as any).members;
     if (!rawMembers) {
       return;
     }
