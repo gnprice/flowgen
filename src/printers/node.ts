@@ -386,11 +386,12 @@ const printErrorType = (description: string, node: ts.Node) => {
   return `($FlowFixMe /* flowgen-error: ${description} */)`;
 };
 
-export const printType = withEnv<any, [any], string>(
-  (env: any, rawType: any): string => {
+export const printType = withEnv<any, [ts.Node], string>(
+  (env: any, rawType: ts.Node): string => {
     // debuggerif()
     //TODO: #6 No match found in SyntaxKind enum
 
+    // @ts-expect-error todo(flow->ts)
     const type: PrintNode = rawType;
 
     const keywordPrefix: string =
