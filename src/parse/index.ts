@@ -67,28 +67,36 @@ const collectNode = (node: ts.Node, context: Node, factory: Factory): void => {
     case ts.SyntaxKind.InterfaceDeclaration:
       context.addChild(
         parseNameFromNode(node),
-        factory.createPropertyNode(node, parseNameFromNode(node), context),
+        factory.createOverloadablePropertyNode(
+          node as ts.InterfaceDeclaration,
+          parseNameFromNode(node),
+          context,
+        ),
       );
       break;
 
     case ts.SyntaxKind.TypeAliasDeclaration:
       context.addChild(
         parseNameFromNode(node),
-        factory.createPropertyNode(node, parseNameFromNode(node), context),
+        factory.createOverloadablePropertyNode(
+          node as ts.TypeAliasDeclaration,
+          parseNameFromNode(node),
+          context,
+        ),
       );
       break;
 
     case ts.SyntaxKind.ClassDeclaration:
       context.addChild(
         parseNameFromNode(node),
-        factory.createPropertyNode(node),
+        factory.createPropertyNode(node as ts.ClassDeclaration),
       );
       break;
 
     case ts.SyntaxKind.VariableStatement:
       context.addChild(
         parseNameFromNode(node),
-        factory.createPropertyNode(node),
+        factory.createPropertyNode(node as ts.ClassDeclaration),
       );
       break;
 
@@ -121,7 +129,7 @@ const collectNode = (node: ts.Node, context: Node, factory: Factory): void => {
     case ts.SyntaxKind.EnumDeclaration:
       context.addChild(
         parseNameFromNode(node),
-        factory.createPropertyNode(node),
+        factory.createPropertyNode(node as ts.EnumDeclaration),
       );
       break;
 

@@ -72,13 +72,19 @@ export class Factory {
     context.addChild(name + this._functionDeclarations[name].length, propNode);
   }
 
+  createPropertyNode(
+    node: ts.ClassDeclaration | ts.VariableStatement | ts.EnumDeclaration,
+  ): PropertyNode {
+    return new PropertyNode(node);
+  }
+
   // Some definition files (like lodash) declare the same
   // interface/type/function multiple times as a way of overloading.
   // Flow does not support that, and this is where we handle that
-  createPropertyNode(
-    node: RawNode,
-    name?: string,
-    context?: Node,
+  createOverloadablePropertyNode(
+    node: ts.InterfaceDeclaration | ts.TypeAliasDeclaration,
+    name: string,
+    context: Node,
   ): PropertyNode {
     if (typeof name === "undefined") {
       return new PropertyNode(node);
