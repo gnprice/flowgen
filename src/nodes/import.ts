@@ -1,12 +1,15 @@
-import type { RawNode } from "./node";
 import Node from "./node";
 import * as printers from "../printers";
 import { checker } from "../checker";
 import * as ts from "typescript";
 
-export default class Import extends Node {
-  constructor(node: RawNode) {
+export default class Import extends Node<ts.ImportDeclaration> {
+  constructor(node: ts.ImportDeclaration) {
     super(node);
+  }
+
+  moduleSpecifier(): string {
+    return (this.raw.moduleSpecifier as ts.StringLiteral).text;
   }
 
   print(): string {
@@ -44,8 +47,8 @@ export default class Import extends Node {
       };
 
       if (name && bindings) {
-        const elements = bindings.elements;
-        if (elements) {
+        if (ts.isNamedImports(bindings)) {
+          const elements = bindings.elements;
           const { enumElems, regularElems } = splitTypeImports(elements);
 
           let result = "";
@@ -54,12 +57,12 @@ export default class Import extends Node {
               this.module === "root" && !isTypeImport ? "" : " type"
             } ${name.text}, {
             ${elements.map(node => printers.node.printType(node))}
-            } from '${this.raw.moduleSpecifier.text}';\n`;
+            } from '${this.moduleSpecifier()}';\n`;
           }
           if (enumElems.length > 0) {
             result += `import typeof ${name.text}, {
               ${elements.map(node => printers.node.printType(node))}
-            } from '${this.raw.moduleSpecifier.text}';\n`;
+            } from '${this.moduleSpecifier()}';\n`;
           }
 
           return result;
@@ -67,17 +70,17 @@ export default class Import extends Node {
           const namespace = bindings.name.text;
           return `import${this.module === "root" ? "" : " typeof"} ${
             name.text
-          }, * as ${namespace} from '${this.raw.moduleSpecifier.text}';\n`;
+          }, * as ${namespace} from '${this.moduleSpecifier()}';\n`;
         }
       }
       if (name) {
         return `import${this.module === "root" ? "" : " typeof"} ${
           name.text
-        } from '${this.raw.moduleSpecifier.text}';\n`;
+        } from '${this.moduleSpecifier()}';\n`;
       }
       if (bindings) {
-        const elements = bindings.elements;
-        if (elements) {
+        if (ts.isNamedImports(bindings)) {
+          const elements = bindings.elements;
           const { enumElems, regularElems } = splitTypeImports(elements);
 
           let result = "";
@@ -86,24 +89,24 @@ export default class Import extends Node {
               this.module === "root" && !isTypeImport ? "" : " type"
             } {
             ${regularElems.map(node => printers.node.printType(node))}
-            } from '${this.raw.moduleSpecifier.text}';\n`;
+            } from '${this.moduleSpecifier()}';\n`;
           }
           if (enumElems.length > 0) {
             result += `import typeof {
               ${enumElems.map(node => printers.node.printType(node))}
-            } from '${this.raw.moduleSpecifier.text}';\n`;
+            } from '${this.moduleSpecifier()}';\n`;
           }
           return result;
         } else {
           const name = bindings.name.text;
           return `import${
             this.module === "root" ? "" : " typeof"
-          } * as ${name} from '${this.raw.moduleSpecifier.text}';\n`;
+          } * as ${name} from '${this.moduleSpecifier()}';\n`;
         }
       }
     }
     return this.module === "root"
-      ? `import '${this.raw.moduleSpecifier.text}';\n`
+      ? `import '${this.moduleSpecifier()}';\n`
       : "";
   }
 }
