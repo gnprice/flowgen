@@ -115,7 +115,7 @@ export default class Namespace extends Node {
   };
 
   static formatChildren(
-    children: ReadonlyArray<Node>,
+    children: ReadonlyArray<Node<ts.Node>>,
     childrenNamespace: string,
   ): string[] {
     const functions = children.filter(
@@ -125,8 +125,8 @@ export default class Namespace extends Node {
     const variables = flatten(
       children
         .filter(
-          child =>
-            child.raw && child.raw.kind === ts.SyntaxKind.VariableStatement,
+          (child): child is Node<ts.VariableStatement> =>
+            child.raw && ts.isVariableStatement(child.raw),
         )
         .map(child => child.raw.declarationList.declarations),
     );
@@ -137,7 +137,7 @@ export default class Namespace extends Node {
     const interfaces = children.filter(
       child =>
         child.raw &&
-        child.raw.kind === ts.SyntaxKind.InterfaceDeclaration &&
+        ts.isInterfaceDeclaration(child.raw) &&
         !(child.raw.typeParameters && child.raw.typeParameters.length),
     );
     const classes = children.filter(
@@ -152,7 +152,9 @@ export default class Namespace extends Node {
         return `${child.name}: typeof ${childrenNamespace}$${child.name}`;
       }),
       variables.map(child => {
-        return `${child.name.text}: typeof ${childrenNamespace}$${child.name.text}`;
+        // We assume the declaration doesn't use a BindingPattern.
+        const name = child.name as ts.Identifier;
+        return `${name.text}: typeof ${childrenNamespace}$${name.text}`;
       }),
       enums.map(child => {
         return `${child.name}: typeof ${childrenNamespace}$${child.name}`;
