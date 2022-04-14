@@ -131,11 +131,17 @@ const collectNode = (node: ts.Node, context: Node, factory: Factory): void => {
 };
 
 // Walk the AST and extract all the definitions we care about
-const traverseNode = (node, context: Node, factory: Factory): void => {
-  if (!node.statements) {
-    collectNode(node, context, factory);
+const traverseNode = (node: ts.Node, context: Node, factory: Factory): void => {
+  // @ts-expect-error
+  const statements = node.statements;
+  if (statements) {
+    // On all TS nodes with a `statements` property, it's a
+    // `NodeArray<Statement>` (or a subtype of that.)
+    (statements as ts.NodeArray<ts.Statement>).forEach(n =>
+      collectNode(n, context, factory),
+    );
   } else {
-    node.statements.forEach(n => collectNode(n, context, factory));
+    collectNode(node, context, factory);
   }
 };
 
