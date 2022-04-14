@@ -5,7 +5,7 @@ import { opts } from "../options";
 import { withEnv } from "../env";
 import ts from "typescript";
 
-const Record = ([key, value]: [any, any], isInexact = opts().inexact) => {
+const printRecord = ([key, value], isInexact: boolean) => {
   const valueType = printers.node.printType(value);
 
   switch (key.kind) {
@@ -49,9 +49,10 @@ const identifiers: { [name: string]: IdentifierResult } = {
       typeArguments[0],
     )}>`;
   },
-  Record,
+  Record: ([key, value]: [any, any]) =>
+    printRecord([key, value], opts().inexact),
   Omit: ([obj, keys]: [any, any]) => {
-    return `$Diff<${printers.node.printType(obj)},${Record(
+    return `$Diff<${printers.node.printType(obj)},${printRecord(
       [keys, { kind: ts.SyntaxKind.AnyKeyword }],
       false,
     )}>`;
