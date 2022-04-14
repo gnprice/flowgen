@@ -142,11 +142,12 @@ export function getFullyQualifiedPropertyAccessExpression(
     if (leftMost) {
       //$todo Flow has problems when switching variables instead of literals
       const leftMostSymbol = typeChecker.getSymbolAtLocation(leftMost);
-      // todo(flow->ts)
-      const decl: any = leftMostSymbol ? leftMostSymbol.declarations[0] : {};
-      isExternalSymbol =
-        decl.kind === ts.SyntaxKind.NamespaceImport ||
-        decl.kind === ts.SyntaxKind.NamedImports;
+      if (leftMostSymbol) {
+        const decl = leftMostSymbol.declarations[0];
+        isExternalSymbol =
+          decl.kind === ts.SyntaxKind.NamespaceImport ||
+          decl.kind === ts.SyntaxKind.NamedImports;
+      }
     }
     if (!symbol || typeChecker.isUnknownSymbol(symbol) || isExternalSymbol) {
       return printPropertyAccessExpression(type);
