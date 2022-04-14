@@ -1,6 +1,5 @@
 import ts from "typescript";
 
-import type { RawNode } from "./node";
 import type Node from "./node";
 import ImportNode from "./import";
 import ExportNode from "./export";
@@ -35,7 +34,10 @@ export class Factory {
 
   // If multiple declarations are found for the same module name
   // return the memoized instance of the module instead
-  createModuleNode(node: RawNode, name: string): ModuleNode {
+  createModuleNode(
+    node: null | ts.ModuleDeclaration,
+    name: string,
+  ): ModuleNode {
     if (Object.keys(this._modules).includes(name)) {
       return this._modules[name];
     }
@@ -110,7 +112,7 @@ export class Factory {
   }
 
   createNamespaceNode = (
-    node: RawNode,
+    node: ts.ModuleDeclaration,
     name: string,
     context: Node,
   ): NamespaceNode => {
@@ -139,10 +141,16 @@ export class Factory {
       return new NamespaceNode(name);
     }
   };
-  createImportNode = (node: RawNode): ImportNode => new ImportNode(node);
-  createExportNode = (node: RawNode): ExportNode => new ExportNode(node);
-  createExportDeclarationNode = (node: RawNode): ExportDeclarationNode =>
-    new ExportDeclarationNode(node);
+
+  createImportNode = (node: ts.ImportDeclaration): ImportNode =>
+    new ImportNode(node);
+
+  createExportNode = (node: ts.ExportAssignment): ExportNode =>
+    new ExportNode(node);
+
+  createExportDeclarationNode = (
+    node: ts.ExportDeclaration,
+  ): ExportDeclarationNode => new ExportDeclarationNode(node);
 }
 
 export default {

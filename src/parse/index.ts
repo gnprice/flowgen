@@ -103,18 +103,21 @@ const collectNode = (node: ts.Node, context: Node, factory: Factory): void => {
     case ts.SyntaxKind.ExportAssignment:
       context.addChild(
         "exportassign" + parseNameFromNode(node),
-        factory.createExportNode(node),
+        factory.createExportNode(node as ts.ExportAssignment),
       );
       break;
 
     case ts.SyntaxKind.ImportDeclaration:
-      context.addChild(parseNameFromNode(node), factory.createImportNode(node));
+      context.addChild(
+        parseNameFromNode(node),
+        factory.createImportNode(node as ts.ImportDeclaration),
+      );
       break;
 
     case ts.SyntaxKind.ExportDeclaration:
       context.addChild(
         "exportdecl" + parseNameFromNode(node),
-        factory.createExportDeclarationNode(node),
+        factory.createExportDeclarationNode(node as ts.ExportDeclaration),
       );
       break;
 
