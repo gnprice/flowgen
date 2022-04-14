@@ -198,26 +198,28 @@ const jsDocPrintTag = (tag): string => {
 };
 
 /** The node's jsdoc comments, if any and if the `jsdoc` option is enabled. */
-export const jsdoc = withEnv<any, [ts.Node], string>((env, node): string => {
-  if (!opts().jsdoc) return "";
+export const jsdoc = withEnv<{ tsdoc?: boolean }, [ts.Node], string>(
+  (env, node): string => {
+    if (!opts().jsdoc) return "";
 
-  // @ts-expect-error The jsDoc property is internal, on ts.JSDocContainer.
-  const jsDoc = node.jsDoc as void | ts.JSDoc[];
-  if (!jsDoc) return "";
+    // @ts-expect-error The jsDoc property is internal, on ts.JSDocContainer.
+    const jsDoc = node.jsDoc as void | ts.JSDoc[];
+    if (!jsDoc) return "";
 
-  const blocks = jsDoc
-    .map(doc => {
-      const comment = (doc.comment ? `\n${doc.comment}` : "").replace(
-        /\n/g,
-        "\n * ",
-      );
+    const blocks = jsDoc
+      .map(doc => {
+        const comment = (doc.comment ? `\n${doc.comment}` : "").replace(
+          /\n/g,
+          "\n * ",
+        );
 
-      env.tsdoc = true;
-      const tags = (doc.tags || []).map(jsDocPrintTag);
-      env.tsdoc = false;
+        env.tsdoc = true;
+        const tags = (doc.tags || []).map(jsDocPrintTag);
+        env.tsdoc = false;
 
-      return `/**${comment + tags.join("")}\n */\n`;
-    })
-    .join("");
-  return `\n${blocks}`;
-});
+        return `/**${comment + tags.join("")}\n */\n`;
+      })
+      .join("");
+    return `\n${blocks}`;
+  },
+);
