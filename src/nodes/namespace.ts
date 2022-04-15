@@ -8,12 +8,12 @@ import * as printers from "../printers";
 
 export default class Namespace extends Node {
   name: string;
-  functions: Array<PropertyNode>;
+  functions: Array<PropertyNode<ts.FunctionDeclaration>>;
   property: PropertyNode | undefined;
 
   constructor(
     name: string,
-    functions?: Array<PropertyNode>,
+    functions?: Array<PropertyNode<ts.FunctionDeclaration>>,
     property?: PropertyNode,
   ) {
     super(null);
@@ -88,7 +88,6 @@ export default class Namespace extends Node {
     }
 
     const childrenDeclarations = this.functions
-      // @ts-expect-error The .raw on a this.functions node is a ts.FunctionDeclaration.
       .map(propNode => printers.functions.functionType(propNode.raw, true))
       .concat(Namespace.formatChildren(children, name));
 

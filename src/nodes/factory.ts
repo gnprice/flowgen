@@ -20,7 +20,7 @@ export class Factory {
     [key: string]: PropertyNode;
   };
   _functionDeclarations: {
-    [key: string]: Array<PropertyNode>;
+    [key: string]: Array<PropertyNode<ts.FunctionDeclaration>>;
   };
 
   constructor() {
