@@ -856,17 +856,18 @@ export const printType = withEnv(
 
       default:
     }
+
+    // @ts-expect-error We look at `name` for debugging, in case it's there
+    const name = rawType.name?.escapedText;
     console.log(`
-    ts.SyntaxKind[type.kind]: ${ts.SyntaxKind[(type as any).kind]}
-    name: ${(type as any)?.name?.escapedText}
-    kind: ${(type as any).kind}
-    type: ${util.inspect(type)}
+    ts.SyntaxKind[type.kind]: ${ts.SyntaxKind[rawType.kind]}
+    name: ${name}
+    kind: ${rawType.kind}
+    type: ${util.inspect(rawType)}
     `);
 
-    // @ts-expect-error todo(flow->ts)
-    const output = `${type.name?.escapedText}: /* NO PRINT IMPLEMENTED: ${
-      // @ts-expect-error todo(flow->ts)
-      ts.SyntaxKind[type.kind]
+    const output = `${name}: /* NO PRINT IMPLEMENTED: ${
+      ts.SyntaxKind[rawType.kind]
     } */ any`;
     console.log(output);
     return output;
