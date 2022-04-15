@@ -273,7 +273,7 @@ export function getFullyQualifiedName(
 
 export function getTypeofFullyQualifiedName(
   symbol: ts.Symbol | undefined,
-  type: any,
+  type: ts.EntityName,
   delimiter = ".",
 ): string {
   if (checker.current) {
@@ -367,7 +367,7 @@ type $FlowGen$Assignable<A, B> = $Call<
 
 export function fixDefaultTypeArguments(
   symbol: ts.Symbol | undefined,
-  type: any,
+  type: ts.ExpressionWithTypeArguments | ts.TypeReferenceNode,
 ): void {
   if (!symbol) return;
   if (!symbol.declarations) return;
@@ -378,6 +378,7 @@ export function fixDefaultTypeArguments(
     // @ts-expect-error todo(flow->ts)
     decl.typeParameters.every(param => !!param.default);
   if (allTypeParametersHaveDefaults && !type.typeArguments) {
+    // @ts-expect-error assigning to read-only property
     type.typeArguments = [];
   }
 }
