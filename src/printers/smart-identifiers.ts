@@ -125,6 +125,16 @@ export function rewriteNode(node: ts.Node, checker: ts.TypeChecker): ts.Node {
         return node; // TODO WORK HERE
       }
     }
+
+    // Some simple rewrites, just changing the name and source.
+    // Can we put these somewhere driven by just a table?
+    //
+    // TODO rewrite ReactNative.NativeMethods
+    //   -> import { type NativeMethods } from 'react-native/Libraries/Renderer/shims/ReactNativeTypes'
+    // TODO rewrite ReactNative.NativeMethodsMixin -> NativeMethods per above
+    // TODO rewrite ReactNative.ViewProps
+    //   -> from 'react-native/Libraries/Components/View/ViewPropTypes';
+
     return node;
   } else if (ts.isImportSpecifier(node)) {
     const name = (node.propertyName ?? node.name).text;
