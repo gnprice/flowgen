@@ -76,7 +76,9 @@ export class Factory {
 
   createPropertyNode(
     node: ts.ClassDeclaration | ts.VariableStatement | ts.EnumDeclaration,
-  ): PropertyNode {
+  ): PropertyNode<
+    ts.ClassDeclaration | ts.VariableStatement | ts.EnumDeclaration
+  > {
     return new PropertyNode(node);
   }
 
@@ -87,7 +89,7 @@ export class Factory {
     node: ts.InterfaceDeclaration | ts.TypeAliasDeclaration,
     name: string,
     context: Node,
-  ): PropertyNode {
+  ): PropertyNode<ts.InterfaceDeclaration | ts.TypeAliasDeclaration> {
     if (typeof name === "undefined") {
       return new PropertyNode(node);
     }
