@@ -121,7 +121,8 @@ export function rewriteNode(node: ts.Node, checker: ts.TypeChecker): ts.Node {
         // TODO:
         //   * Handle those "new" function types, if we don't already,
         //     using the Class<… & interface { constructor(…): void }> idea.
-        //   * Handle this by just rewriting to one of those.
+        //   * Handle this by just rewriting to one of those.  Perhaps as a
+        //     transformer?
         return node; // TODO WORK HERE
       }
     }
@@ -134,6 +135,22 @@ export function rewriteNode(node: ts.Node, checker: ts.TypeChecker): ts.Node {
     // TODO rewrite ReactNative.NativeMethodsMixin -> NativeMethods per above
     // TODO rewrite ReactNative.ViewProps
     //   -> from 'react-native/Libraries/Components/View/ViewPropTypes';
+    //
+    // Probably *do* want them to happen at the end, here, instead of at the
+    // beginning, as a transformer -- because that way the TS compiler
+    // understands the references while we're doing things that contain
+    // them, so we can get the right answers for things like "that's a
+    // class, must implement intersection as intersection instead of spread".
+    //
+    // ... Hmm, or not -- writing that out, I realize that any answer it
+    // gets is likely to be a *wrong* answer, because the reason we need
+    // these rewrites in the first place is that the TS definitions don't
+    // correspond to the Flow ones.  So maybe it should be a transformer.
+    // Then those conditionals will fall back to their defaults for when
+    // they don't know the situation, and hopefully those are good guesses.
+    //
+    // For that matter, if need be we can perhaps massage the transformer's
+    // output to give the right hints there.
 
     return node;
   } else if (ts.isImportSpecifier(node)) {
