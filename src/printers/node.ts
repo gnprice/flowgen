@@ -215,16 +215,17 @@ export function getFullyQualifiedName(
       if (leftMost) {
         //$todo Flow has problems when switching variables instead of literals
         const leftMostSymbol = typeChecker.getSymbolAtLocation(leftMost);
-        const decl: any =
+        const decl =
           leftMostSymbol &&
           leftMostSymbol.declarations &&
           leftMostSymbol.declarations.length
             ? leftMostSymbol.declarations[0]
-            : {};
+            : null;
         isExternalSymbol =
-          decl.kind === ts.SyntaxKind.NamespaceImport ||
-          decl.kind === ts.SyntaxKind.NamedImports ||
-          decl.kind === ts.SyntaxKind.TypeParameter ||
+          (decl &&
+            (decl.kind === ts.SyntaxKind.NamespaceImport ||
+              decl.kind === ts.SyntaxKind.NamedImports ||
+              decl.kind === ts.SyntaxKind.TypeParameter)) ||
           leftMostSymbol?.parent?.escapedName === "__global";
       }
       if (!symbol || typeChecker.isUnknownSymbol(symbol) || isExternalSymbol) {
@@ -282,11 +283,11 @@ export function getTypeofFullyQualifiedName(
     if (leftMost) {
       //$todo Flow has problems when switching variables instead of literals
       const leftMostSymbol = typeChecker.getSymbolAtLocation(leftMost);
-      // todo(flow->ts)
-      const decl: any = leftMostSymbol ? leftMostSymbol.declarations[0] : {};
+      const decl = leftMostSymbol ? leftMostSymbol.declarations[0] : null;
       isExternalSymbol =
-        decl.kind === ts.SyntaxKind.NamespaceImport ||
-        decl.kind === ts.SyntaxKind.NamedImports;
+        decl &&
+        (decl.kind === ts.SyntaxKind.NamespaceImport ||
+          decl.kind === ts.SyntaxKind.NamedImports);
     }
     if (!symbol || typeChecker.isUnknownSymbol(symbol) || isExternalSymbol) {
       return printEntityName(type);
