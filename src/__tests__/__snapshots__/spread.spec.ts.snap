@@ -16,7 +16,7 @@ declare type Bar = {
   bar: string,
   ...
 };
-declare var combination: { ...Foo, ...Bar };
+declare var combination: { ...Foo, ...Bar, ... };
 "
 `;
 

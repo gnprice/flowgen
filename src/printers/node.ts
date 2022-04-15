@@ -777,7 +777,7 @@ export const printType = withEnv<any, [any], string>(
 
         const isInexact = opts().inexact;
 
-        return isInexact ? `{ ${spreadType} }` : `{| ${spreadType} |}`;
+        return isInexact ? `{ ${spreadType}, ... }` : `{| ${spreadType} |}`;
       }
 
       case ts.SyntaxKind.MethodDeclaration:
