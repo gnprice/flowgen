@@ -21,11 +21,13 @@ type PropertyNode =
   | EnumDeclaration
   | VariableStatement;
 
-export default class Property extends Node<PropertyNode> {
+export default class Property<
+  N extends PropertyNode = PropertyNode,
+> extends Node<N> {
   name: string;
   skip: boolean;
 
-  constructor(node: PropertyNode) {
+  constructor(node: N) {
     super(node);
 
     this.name = parseNameFromNode(node);
