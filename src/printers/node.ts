@@ -78,8 +78,8 @@ type PrintNode =
   | ts.SetAccessorDeclaration
   | ts.InferTypeNode;
 
-export function printEntityName(type: ts.EntityName): string {
-  if (type.kind === ts.SyntaxKind.QualifiedName) {
+export function printEntityName(type: ts.Node): string {
+  if (ts.isQualifiedName(type)) {
     return (
       printers.relationships.namespace(
         type.left.kind === ts.SyntaxKind.Identifier
@@ -87,7 +87,7 @@ export function printEntityName(type: ts.EntityName): string {
           : printEntityName(type.left),
       ) + printEntityName(type.right)
     );
-  } else if (type.kind === ts.SyntaxKind.Identifier) {
+  } else if (ts.isIdentifier(type)) {
     return printers.relationships.namespace(type.text, true);
   } else {
     return "";
@@ -195,7 +195,14 @@ export function getFullyQualifiedPropertyAccessExpression(
 
 export function getFullyQualifiedName(
   symbol: ts.Symbol | undefined,
-  type: any,
+  // todo: This seems weird; parts of this function really want an EntityName.
+  //   Should this be two different functions?
+  type:
+    | ts.EntityName
+    | ts.FunctionDeclaration
+    | ts.InterfaceDeclaration
+    | ts.TypeAliasDeclaration
+    | ts.ModuleDeclaration,
   checks = true,
   delimiter = "$",
 ): string {
@@ -203,7 +210,8 @@ export function getFullyQualifiedName(
     const typeChecker = checker.current;
     if (checks) {
       let isExternalSymbol = false;
-      const leftMost = getLeftMostEntityName(type);
+      // todo(flow->ts) callers pass `checks` true only when `type` an EntityName
+      const leftMost = getLeftMostEntityName(type as ts.EntityName);
       if (leftMost) {
         //$todo Flow has problems when switching variables instead of literals
         const leftMostSymbol = typeChecker.getSymbolAtLocation(leftMost);

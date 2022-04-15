@@ -13,7 +13,8 @@ export const propertyDeclaration = (
   let left = keywordPrefix;
   const symbol = checker.current.getSymbolAtLocation(node.name);
   const name = ts.isVariableDeclaration(node)
-    ? printers.node.getFullyQualifiedName(symbol, node.name)
+    ? // @ts-expect-error todo(flow->ts) assume node.name not a BindingPattern
+      printers.node.getFullyQualifiedName(symbol, node.name)
     : printers.node.printType(node.name);
   if (
     node.modifiers &&
