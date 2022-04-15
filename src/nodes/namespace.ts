@@ -9,12 +9,14 @@ import * as printers from "../printers";
 export default class Namespace extends Node {
   name: string;
   functions: Array<PropertyNode<ts.FunctionDeclaration>>;
-  property: PropertyNode | undefined;
+  property:
+    | PropertyNode<ts.InterfaceDeclaration | ts.TypeAliasDeclaration>
+    | undefined;
 
   constructor(
     name: string,
     functions?: Array<PropertyNode<ts.FunctionDeclaration>>,
-    property?: PropertyNode,
+    property?: PropertyNode<ts.InterfaceDeclaration | ts.TypeAliasDeclaration>,
   ) {
     super(null);
 

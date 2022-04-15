@@ -21,9 +21,7 @@ type PropertyNode =
   | EnumDeclaration
   | VariableStatement;
 
-export default class Property<
-  N extends PropertyNode = PropertyNode,
-> extends Node<N> {
+export default class Property<N extends PropertyNode> extends Node<N> {
   name: string;
   skip: boolean;
 
@@ -36,24 +34,6 @@ export default class Property<
 
   skipNode() {
     this.skip = true;
-  }
-
-  /**
-   * Used for overloading the props of some types
-   */
-  maybeAddMember(members: void | ReadonlyArray<ts.Node>): void {
-    if (!members) return;
-    if (
-      ts.isFunctionDeclaration(this.raw) ||
-      ts.isTypeAliasDeclaration(this.raw) ||
-      ts.isVariableStatement(this.raw)
-    )
-      return;
-    const rawMembers = this.raw.members;
-    members.forEach(member => {
-      // @ts-expect-error ts.NodeArray is read-only, but we push to it
-      rawMembers.push(stripDetailsFromTree(member));
-    });
   }
 
   print(namespace = "", mod = "root"): string {
@@ -126,4 +106,24 @@ export default class Property<
     }
     return out;
   }
+}
+
+/**
+ * Used for overloading the props of some types
+ */
+export function maybeAddMembers<
+  N extends ts.ClassDeclaration | ts.InterfaceDeclaration | ts.EnumDeclaration,
+>(node: Property<N>, members: void | N["members"]): void {
+  if (!members) return;
+  if (
+    ts.isFunctionDeclaration(node.raw) ||
+    ts.isTypeAliasDeclaration(node.raw) ||
+    ts.isVariableStatement(node.raw)
+  )
+    return;
+  const rawMembers = node.raw.members;
+  members.forEach((member: typeof members[0]) => {
+    // @ts-expect-error ts.NodeArray is read-only, but we push to it
+    rawMembers.push(stripDetailsFromTree(member));
+  });
 }

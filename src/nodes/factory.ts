@@ -5,7 +5,7 @@ import ImportNode from "./import";
 import ExportNode from "./export";
 import ExportDeclarationNode from "./export-declaration";
 import ModuleNode from "./module";
-import PropertyNode from "./property";
+import PropertyNode, { maybeAddMembers } from "./property";
 import NamespaceNode from "./namespace";
 
 import { getMembersFromNode } from "../parse/ast";
@@ -17,7 +17,9 @@ export class Factory {
     [key: string]: ModuleNode;
   };
   _propDeclarations: {
-    [key: string]: PropertyNode;
+    [key: string]: PropertyNode<
+      ts.InterfaceDeclaration | ts.TypeAliasDeclaration
+    >;
   };
   _functionDeclarations: {
     [key: string]: Array<PropertyNode<ts.FunctionDeclaration>>;
@@ -103,7 +105,12 @@ export class Factory {
     }
 
     if (Object.keys(this._propDeclarations).includes(name)) {
-      this._propDeclarations[name].maybeAddMember(getMembersFromNode(node));
+      if (ts.isInterfaceDeclaration(node))
+        maybeAddMembers(
+          this._propDeclarations[name] as PropertyNode<ts.InterfaceDeclaration>,
+          // @ts-expect-error TODO WORK HERE; does the existing this._propDeclarations[name] have to agree in type with this `node`?
+          getMembersFromNode(node),
+        );
 
       return this._propDeclarations[name];
     }
