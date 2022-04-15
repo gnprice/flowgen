@@ -105,19 +105,38 @@ export function rewriteNode(node: ts.Node, checker: ts.TypeChecker): ts.Node {
     const parentDecl = type.symbol?.parent?.declarations[0];
     if (!parentDecl) return node;
     if (ts.isModuleDeclaration(parentDecl)) {
-      // const parentName = parentDecl.name.text;
-      //
-      // TODO do something
+      const parentName = parentDecl.name.text;
+
+      // Rewrite ReactNative.Constructor, expanding its definition.
+      if (
+        parentName === "ReactNative" &&
+        type.symbol.name === "Constructor" &&
+        node.typeArguments.length === 1
+      ) {
+        // TS version in @types/react-native:
+        //   type Constructor<T> = new (...args: any[]) => T;
+        // Rewrite as Flow:
+        //   type Constructor<T: interface {}> =
+        //     Class<T & interface { constructor(...args: any[]): void }>;
+        // TODO:
+        //   * Handle those "new" function types, if we don't already,
+        //     using the Class<… & interface { constructor(…): void }> idea.
+        //   * Handle this by just rewriting to one of those.
+        return node; // TODO WORK HERE
+      }
     }
     return node;
   } else if (ts.isImportSpecifier(node)) {
-    // const name = (node.propertyName ?? node.name).text;
-    // const source = (
-    //   node.parent.parent.parent.moduleSpecifier as ts.StringLiteral
-    // ).text;
+    const name = (node.propertyName ?? node.name).text;
+    const source = (
+      node.parent.parent.parent.moduleSpecifier as ts.StringLiteral
+    ).text;
 
-    // TODO do something
-
+    // Delete imports of ReactNative.Constructor.  (Above, we rewrite away
+    // any uses of it.)
+    if (source === "react-native" && name === "Constructor") {
+      return null;
+    }
     return node;
   }
   return node;
