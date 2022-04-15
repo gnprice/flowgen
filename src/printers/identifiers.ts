@@ -5,7 +5,10 @@ import { opts } from "../options";
 import { withEnv } from "../env";
 import ts from "typescript";
 
-const Record = ([key, value]: [any, any], isInexact = opts().inexact) => {
+const printRecord = (
+  [key, value]: [ts.TypeNode, ts.TypeNode],
+  isInexact: boolean,
+) => {
   const valueType = printers.node.printType(value);
 
   switch (key.kind) {
@@ -13,14 +16,16 @@ const Record = ([key, value]: [any, any], isInexact = opts().inexact) => {
       return `{ ${printers.node.printType(key)}: ${valueType}${
         isInexact ? ", ..." : ""
       }}`;
-    case ts.SyntaxKind.UnionType:
-      if (key.types.every(t => t.kind === ts.SyntaxKind.LiteralType)) {
-        const fields = key.types.reduce((acc, t) => {
+    case ts.SyntaxKind.UnionType: {
+      const types = (key as ts.UnionTypeNode).types;
+      if (types.every(t => t.kind === ts.SyntaxKind.LiteralType)) {
+        const fields = types.reduce((acc, t) => {
           acc += `${printers.node.printType(t)}: ${valueType},\n`;
           return acc;
         }, "");
         return `{ ${fields}${isInexact ? "..." : ""}}`;
       }
+    }
     // Fallthrough
     default:
       return `{[key: ${printers.node.printType(key)}]: ${valueType}${
@@ -29,37 +34,42 @@ const Record = ([key, value]: [any, any], isInexact = opts().inexact) => {
   }
 };
 
-const identifiers = Object.create(null);
-Object.assign(identifiers, {
+type IdentifierResult =
+  | string
+  | ((typeArguments: ts.NodeArray<ts.TypeNode>) => string);
+
+const identifiers: { [name: string]: IdentifierResult } = {
   ReadonlyArray: "$ReadOnlyArray",
   ReadonlySet: "$ReadOnlySet",
   ReadonlyMap: "$ReadOnlyMap",
   Readonly: "$ReadOnly",
   RegExpMatchArray: "RegExp$matchResult",
   NonNullable: "$NonMaybeType",
-  Partial: ([type]: any[]) => {
+  Partial: ([type]) => {
     const isInexact = opts().inexact;
     return `$Rest<${printers.node.printType(type)}, {${
       isInexact ? "..." : ""
     }}>`;
   },
-  ReturnType: (typeArguments: any[]) => {
+  ReturnType: typeArguments => {
     return `$Call<<R>((...args: any[]) => R) => R, ${printers.node.printType(
       typeArguments[0],
     )}>`;
   },
-  Record,
-  Omit: ([obj, keys]: [any, any]) => {
-    return `$Diff<${printers.node.printType(obj)},${Record(
-      [keys, { kind: ts.SyntaxKind.AnyKeyword }],
+  Record: ([key, value]) => printRecord([key, value], opts().inexact),
+  Omit: ([obj, keys]) => {
+    return `$Diff<${printers.node.printType(obj)},${printRecord(
+      [keys, ts.createKeywordTypeNode(ts.SyntaxKind.AnyKeyword)],
       false,
     )}>`;
   },
-});
+};
 
-export const print = withEnv<any, [string], string>(
-  (env, kind: string): string => {
+export const print = withEnv(
+  (env: { classHeritage?: boolean }, kind: string): IdentifierResult => {
     if (env.classHeritage) return kind;
-    return identifiers[kind] || kind;
+    return Object.prototype.hasOwnProperty.call(identifiers, kind)
+      ? identifiers[kind]
+      : kind;
   },
 );

@@ -1,12 +1,12 @@
 import _ from "lodash";
-import type { Node as TSNode } from "typescript";
+import ts from "typescript";
 import { parseNameFromNode, stripDetailsFromTree } from "../parse/ast";
 
 import * as printers from "../printers";
 
 export type RawNode = any;
 
-class Node<NodeType = RawNode> {
+class Node<NodeType extends ts.Node = ts.Node> {
   children: {
     [key: string]: Node;
   };
@@ -15,6 +15,8 @@ class Node<NodeType = RawNode> {
   raw: NodeType;
   namespace: string | undefined | null;
   module: string | undefined | null;
+  // Used by Namespace nodes on their children.
+  isValue?: boolean;
 
   constructor(node?: NodeType | null) {
     //$off
@@ -44,23 +46,6 @@ class Node<NodeType = RawNode> {
     }
   }
 
-  /**
-   * Used for overloading the props of some types
-   */
-  maybeAddMember(members: any | ReadonlyArray<any>): void {
-    const rawMembers: Array<TSNode> | void = (this.raw as any).members;
-    if (!rawMembers) {
-      return;
-    }
-    if (Array.isArray(members)) {
-      members.forEach(member => {
-        rawMembers.push(stripDetailsFromTree(member));
-      });
-    } else {
-      rawMembers.push(stripDetailsFromTree(members));
-    }
-  }
-
   getChildren(): ReadonlyArray<Node> {
     return _.toArray(this.children);
   }
@@ -69,9 +54,6 @@ class Node<NodeType = RawNode> {
   print(namespace?: string, module?: string, depth?: number): string {
     return printers.node.printType(this.raw);
   }
-}
-interface Node {
-  [k: string]: any;
 }
 
 export default Node;

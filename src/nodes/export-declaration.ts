@@ -1,17 +1,10 @@
-import type { RawNode } from "./node";
-import type { Expression, ExportDeclaration as RawExport } from "typescript";
-import { isNamespaceExport } from "typescript";
+import type ts from "typescript";
+import { ExportSpecifier, isNamespaceExport } from "typescript";
 import * as printers from "../printers";
 import Node from "./node";
 
-type ExportDeclarationType = RawExport & {
-  moduleSpecifier?: Expression & {
-    text: string;
-  };
-};
-
-export default class ExportDeclaration extends Node<ExportDeclarationType> {
-  constructor(node: RawNode) {
+export default class ExportDeclaration extends Node<ts.ExportDeclaration> {
+  constructor(node: ts.ExportDeclaration) {
     super(node);
   }
 
@@ -20,9 +13,9 @@ export default class ExportDeclaration extends Node<ExportDeclarationType> {
     if (this.raw.exportClause) {
       const isTypeImport = this.raw.isTypeOnly;
 
-      let specifier = "";
-      if (this.raw.moduleSpecifier)
-        specifier = `from '${this.raw.moduleSpecifier.text}';`;
+      const specifier = this.raw.moduleSpecifier
+        ? `from '${(this.raw.moduleSpecifier as ts.StringLiteral).text}';`
+        : "";
 
       if (isNamespaceExport(this.raw.exportClause)) {
         return `declare export * as ${this.raw.exportClause.name.escapedText} ${specifier}\n`;
@@ -30,7 +23,8 @@ export default class ExportDeclaration extends Node<ExportDeclarationType> {
 
       // split exports into type and value exports
       const rawElements = this.raw.exportClause.elements;
-      let typeExports, valueExports;
+      let typeExports: ts.ExportSpecifier[] | ts.NodeArray<ExportSpecifier>;
+      let valueExports: ts.ExportSpecifier[];
       if (isTypeImport) {
         typeExports = rawElements;
         valueExports = [];
@@ -50,7 +44,10 @@ export default class ExportDeclaration extends Node<ExportDeclarationType> {
         }
       }
 
-      const generateOutput = (prefix, elems) => {
+      const generateOutput = (
+        prefix: string,
+        elems: ReadonlyArray<ts.ExportSpecifier>,
+      ) => {
         return `${prefix} {
           ${elems.map(node => printers.node.printType(node))}
         }${specifier}\n`;
@@ -65,7 +62,8 @@ export default class ExportDeclaration extends Node<ExportDeclarationType> {
       }
       return result;
     } else {
-      return `declare export * from '${this.raw.moduleSpecifier.text}';\n`;
+      const specifier = (this.raw.moduleSpecifier as ts.StringLiteral).text;
+      return `declare export * from '${specifier}';\n`;
     }
   }
 }

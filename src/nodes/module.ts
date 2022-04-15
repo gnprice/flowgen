@@ -1,13 +1,12 @@
 import * as ts from "typescript";
-import type { RawNode } from "./node";
 import * as logger from "../logger";
 import Node from "./node";
 import Namespace from "./namespace";
 
-export default class Module extends Node {
+export default class Module extends Node<ts.ModuleDeclaration> {
   name: string;
 
-  constructor(node: RawNode | undefined | null, name: string) {
+  constructor(node: ts.ModuleDeclaration | undefined | null, name: string) {
     super(node);
 
     this.name = name;

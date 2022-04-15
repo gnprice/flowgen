@@ -78,8 +78,8 @@ type PrintNode =
   | ts.SetAccessorDeclaration
   | ts.InferTypeNode;
 
-export function printEntityName(type: ts.EntityName): string {
-  if (type.kind === ts.SyntaxKind.QualifiedName) {
+export function printEntityName(type: ts.Node): string {
+  if (ts.isQualifiedName(type)) {
     return (
       printers.relationships.namespace(
         type.left.kind === ts.SyntaxKind.Identifier
@@ -87,7 +87,7 @@ export function printEntityName(type: ts.EntityName): string {
           : printEntityName(type.left),
       ) + printEntityName(type.right)
     );
-  } else if (type.kind === ts.SyntaxKind.Identifier) {
+  } else if (ts.isIdentifier(type)) {
     return printers.relationships.namespace(type.text, true);
   } else {
     return "";
@@ -108,6 +108,7 @@ export function printPropertyAccessExpression(
     );
   } else if (type.kind === ts.SyntaxKind.Identifier) {
     return printers.relationships.namespace(
+      // @ts-expect-error todo(flow->ts)
       printers.identifiers.print(type.text),
       true,
     );
@@ -131,7 +132,7 @@ export function getLeftMostPropertyAccessExpression(
 
 export function getFullyQualifiedPropertyAccessExpression(
   symbol: ts.Symbol | undefined,
-  type: any,
+  type: ts.PropertyAccessExpression | ts.Identifier,
   delimiter = "$",
 ): string {
   if (checker.current) {
@@ -141,11 +142,12 @@ export function getFullyQualifiedPropertyAccessExpression(
     if (leftMost) {
       //$todo Flow has problems when switching variables instead of literals
       const leftMostSymbol = typeChecker.getSymbolAtLocation(leftMost);
-      // todo(flow->ts)
-      const decl: any = leftMostSymbol ? leftMostSymbol.declarations[0] : {};
-      isExternalSymbol =
-        decl.kind === ts.SyntaxKind.NamespaceImport ||
-        decl.kind === ts.SyntaxKind.NamedImports;
+      if (leftMostSymbol) {
+        const decl = leftMostSymbol.declarations[0];
+        isExternalSymbol =
+          decl.kind === ts.SyntaxKind.NamespaceImport ||
+          decl.kind === ts.SyntaxKind.NamedImports;
+      }
     }
     if (!symbol || typeChecker.isUnknownSymbol(symbol) || isExternalSymbol) {
       return printPropertyAccessExpression(type);
@@ -193,7 +195,14 @@ export function getFullyQualifiedPropertyAccessExpression(
 
 export function getFullyQualifiedName(
   symbol: ts.Symbol | undefined,
-  type: any,
+  // todo: This seems weird; parts of this function really want an EntityName.
+  //   Should this be two different functions?
+  type:
+    | ts.EntityName
+    | ts.FunctionDeclaration
+    | ts.InterfaceDeclaration
+    | ts.TypeAliasDeclaration
+    | ts.ModuleDeclaration,
   checks = true,
   delimiter = "$",
 ): string {
@@ -201,20 +210,22 @@ export function getFullyQualifiedName(
     const typeChecker = checker.current;
     if (checks) {
       let isExternalSymbol = false;
-      const leftMost = getLeftMostEntityName(type);
+      // todo(flow->ts) callers pass `checks` true only when `type` an EntityName
+      const leftMost = getLeftMostEntityName(type as ts.EntityName);
       if (leftMost) {
         //$todo Flow has problems when switching variables instead of literals
         const leftMostSymbol = typeChecker.getSymbolAtLocation(leftMost);
-        const decl: any =
+        const decl =
           leftMostSymbol &&
           leftMostSymbol.declarations &&
           leftMostSymbol.declarations.length
             ? leftMostSymbol.declarations[0]
-            : {};
+            : null;
         isExternalSymbol =
-          decl.kind === ts.SyntaxKind.NamespaceImport ||
-          decl.kind === ts.SyntaxKind.NamedImports ||
-          decl.kind === ts.SyntaxKind.TypeParameter ||
+          (decl &&
+            (decl.kind === ts.SyntaxKind.NamespaceImport ||
+              decl.kind === ts.SyntaxKind.NamedImports ||
+              decl.kind === ts.SyntaxKind.TypeParameter)) ||
           leftMostSymbol?.parent?.escapedName === "__global";
       }
       if (!symbol || typeChecker.isUnknownSymbol(symbol) || isExternalSymbol) {
@@ -262,7 +273,7 @@ export function getFullyQualifiedName(
 
 export function getTypeofFullyQualifiedName(
   symbol: ts.Symbol | undefined,
-  type: any,
+  type: ts.EntityName,
   delimiter = ".",
 ): string {
   if (checker.current) {
@@ -272,11 +283,11 @@ export function getTypeofFullyQualifiedName(
     if (leftMost) {
       //$todo Flow has problems when switching variables instead of literals
       const leftMostSymbol = typeChecker.getSymbolAtLocation(leftMost);
-      // todo(flow->ts)
-      const decl: any = leftMostSymbol ? leftMostSymbol.declarations[0] : {};
+      const decl = leftMostSymbol ? leftMostSymbol.declarations[0] : null;
       isExternalSymbol =
-        decl.kind === ts.SyntaxKind.NamespaceImport ||
-        decl.kind === ts.SyntaxKind.NamedImports;
+        decl &&
+        (decl.kind === ts.SyntaxKind.NamespaceImport ||
+          decl.kind === ts.SyntaxKind.NamedImports);
     }
     if (!symbol || typeChecker.isUnknownSymbol(symbol) || isExternalSymbol) {
       return printEntityName(type);
@@ -329,7 +340,9 @@ export function getTypeofFullyQualifiedName(
   }
 }
 
-export function printFlowGenHelper(env): string {
+export function printFlowGenHelper(env: {
+  conditionalHelpers?: boolean;
+}): string {
   let helpers = "";
   if (env.conditionalHelpers) {
     helpers += `
@@ -354,7 +367,7 @@ type $FlowGen$Assignable<A, B> = $Call<
 
 export function fixDefaultTypeArguments(
   symbol: ts.Symbol | undefined,
-  type: any,
+  type: ts.ExpressionWithTypeArguments | ts.TypeReferenceNode,
 ): void {
   if (!symbol) return;
   if (!symbol.declarations) return;
@@ -365,6 +378,7 @@ export function fixDefaultTypeArguments(
     // @ts-expect-error todo(flow->ts)
     decl.typeParameters.every(param => !!param.default);
   if (allTypeParametersHaveDefaults && !type.typeArguments) {
+    // @ts-expect-error assigning to read-only property
     type.typeArguments = [];
   }
 }
@@ -384,11 +398,12 @@ const printErrorType = (description: string, node: ts.Node) => {
   return `($FlowFixMe /* flowgen-error: ${description} */)`;
 };
 
-export const printType = withEnv<any, [any], string>(
-  (env: any, rawType: any): string => {
+export const printType = withEnv(
+  (env: { conditionalHelpers?: boolean }, rawType: ts.Node): string => {
     // debuggerif()
     //TODO: #6 No match found in SyntaxKind enum
 
+    // @ts-expect-error todo(flow->ts)
     const type: PrintNode = rawType;
 
     const keywordPrefix: string =
@@ -504,6 +519,7 @@ export const printType = withEnv<any, [any], string>(
       //case SyntaxKind.StringLiteralType:
       case ts.SyntaxKind.Identifier: {
         return printers.relationships.namespace(
+          // @ts-expect-error todo(flow->ts)
           printers.identifiers.print(type.text),
           true,
         );
@@ -673,11 +689,8 @@ export const printType = withEnv<any, [any], string>(
       }
 
       case ts.SyntaxKind.VariableDeclaration:
-        return printers.declarations.propertyDeclaration(
-          type,
-          keywordPrefix,
-          true,
-        );
+        return printers.declarations.propertyDeclaration(type, keywordPrefix);
+
       case ts.SyntaxKind.PropertyDeclaration:
         return printers.declarations.propertyDeclaration(type, keywordPrefix);
 
@@ -723,10 +736,9 @@ export const printType = withEnv<any, [any], string>(
 
       case ts.SyntaxKind.CallSignature: {
         // TODO: rewrite to printers.functions.functionType
-        const generics = printers.common.generics(type.typeParameters, node => {
-          node.withoutDefault = true;
-          return node;
-        });
+        const generics = printers.common.genericsWithoutDefault(
+          type.typeParameters,
+        );
         const str = `${generics}(${type.parameters
           // @ts-expect-error todo(flow->ts)
           .filter(param => param.name.text !== "this")
@@ -845,17 +857,18 @@ export const printType = withEnv<any, [any], string>(
 
       default:
     }
+
+    // @ts-expect-error We look at `name` for debugging, in case it's there
+    const name = rawType.name?.escapedText;
     console.log(`
-    ts.SyntaxKind[type.kind]: ${ts.SyntaxKind[(type as any).kind]}
-    name: ${(type as any)?.name?.escapedText}
-    kind: ${(type as any).kind}
-    type: ${util.inspect(type)}
+    ts.SyntaxKind[type.kind]: ${ts.SyntaxKind[rawType.kind]}
+    name: ${name}
+    kind: ${rawType.kind}
+    type: ${util.inspect(rawType)}
     `);
 
-    // @ts-expect-error todo(flow->ts)
-    const output = `${type.name?.escapedText}: /* NO PRINT IMPLEMENTED: ${
-      // @ts-expect-error todo(flow->ts)
-      ts.SyntaxKind[type.kind]
+    const output = `${name}: /* NO PRINT IMPLEMENTED: ${
+      ts.SyntaxKind[rawType.kind]
     } */ any`;
     console.log(output);
     return output;

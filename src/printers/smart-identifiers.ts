@@ -3,7 +3,7 @@ import { checker } from "../checker";
 
 const setImportedName = (
   name: ts.__String,
-  type: any,
+  type: ts.Identifier,
   symbol: ts.Symbol,
   decl: ts.Declaration,
 ): boolean => {
@@ -27,6 +27,7 @@ const setImportedName = (
     // @ts-expect-error todo(flow->ts)
     specifiers.includes(decl.parent?.parent?.parent?.moduleSpecifier?.text)
   ) {
+    // @ts-expect-error todo(flow->ts)
     type.escapedText =
       // @ts-expect-error todo(flow->ts)
       paths(decl.parent.parent.parent.moduleSpecifier.text)[name] || name;

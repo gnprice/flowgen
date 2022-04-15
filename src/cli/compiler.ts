@@ -24,8 +24,8 @@ import {
 import { recursiveWalkTree } from "../parse";
 import { printFlowGenHelper } from "../printers/node";
 
-const compile = withEnv<any, [SourceFile], string>(
-  (env: any, sourceFile: SourceFile): string => {
+const compile = withEnv(
+  (env: { conditionalHelpers?: boolean }, sourceFile: SourceFile): string => {
     const rootNode = recursiveWalkTree(sourceFile);
 
     const output = rootNode

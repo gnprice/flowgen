@@ -1,5 +1,3 @@
-import type { RawNode } from "../nodes/node";
-
 import * as ts from "typescript";
 
 import Node from "../nodes/node";
@@ -10,94 +8,116 @@ import { parseNameFromNode, stripDetailsFromTree } from "./ast";
 import * as logger from "../logger";
 import { checker } from "../checker";
 
-const collectNode = (node: RawNode, context: Node, factory: Factory): void => {
+const collectModuleDeclaration = (
+  node: ts.ModuleDeclaration,
+  context: Node,
+  factory: Factory,
+): void => {
+  if (
+    // @ts-expect-error
+    node.flags === 4098 ||
+    (node.flags & ts.NodeFlags.Namespace) === ts.NodeFlags.Namespace
+  ) {
+    if (
+      (node.flags & ts.NodeFlags.GlobalAugmentation) ===
+      ts.NodeFlags.GlobalAugmentation
+    ) {
+      logger.error(node, { type: "UnsupportedGlobalAugmentation" });
+      const globalAugmentation = factory.createModuleNode(node, node.name.text);
+      context.addChild("module" + node.name.text, globalAugmentation);
+      traverseNode(node.body, globalAugmentation, factory);
+      return;
+    }
+    const namespace = factory.createNamespaceNode(
+      node,
+      node.name.text,
+      context,
+    );
+
+    traverseNode(node.body, namespace, factory);
+
+    context.addChildren("namespace" + node.name.text, namespace);
+    return;
+  } else {
+    const module = factory.createModuleNode(node, node.name.text);
+
+    context.addChild("module" + node.name.text, module);
+
+    traverseNode(node.body, module, factory);
+    return;
+  }
+};
+
+const collectNode = (node: ts.Node, context: Node, factory: Factory): void => {
   stripDetailsFromTree(node);
   switch (node.kind) {
     case ts.SyntaxKind.ModuleDeclaration:
-      if (
-        node.flags === 4098 ||
-        (node.flags & ts.NodeFlags.Namespace) === ts.NodeFlags.Namespace
-      ) {
-        if (
-          (node.flags & ts.NodeFlags.GlobalAugmentation) ===
-          ts.NodeFlags.GlobalAugmentation
-        ) {
-          logger.error(node, { type: "UnsupportedGlobalAugmentation" });
-          const globalAugmentation = factory.createModuleNode(
-            node,
-            node.name.text,
-          );
-          context.addChild("module" + node.name.text, globalAugmentation);
-          traverseNode(node.body, globalAugmentation, factory);
-          break;
-        }
-        const namespace = factory.createNamespaceNode(
-          node,
-          node.name.text,
-          context,
-        );
-
-        traverseNode(node.body, namespace, factory);
-
-        context.addChildren("namespace" + node.name.text, namespace);
-        break;
-      } else {
-        const module = factory.createModuleNode(node, node.name.text);
-
-        context.addChild("module" + node.name.text, module);
-
-        traverseNode(node.body, module, factory);
-        break;
-      }
+      collectModuleDeclaration(node as ts.ModuleDeclaration, context, factory);
+      break;
 
     case ts.SyntaxKind.FunctionDeclaration:
       // TODO: rewrite this
-      factory.createFunctionDeclaration(node, parseNameFromNode(node), context);
+      factory.createFunctionDeclaration(
+        node as ts.FunctionDeclaration,
+        parseNameFromNode(node),
+        context,
+      );
       break;
 
     case ts.SyntaxKind.InterfaceDeclaration:
       context.addChild(
         parseNameFromNode(node),
-        factory.createPropertyNode(node, parseNameFromNode(node), context),
+        factory.createOverloadablePropertyNode(
+          node as ts.InterfaceDeclaration,
+          parseNameFromNode(node),
+          context,
+        ),
       );
       break;
 
     case ts.SyntaxKind.TypeAliasDeclaration:
       context.addChild(
         parseNameFromNode(node),
-        factory.createPropertyNode(node, parseNameFromNode(node), context),
+        factory.createOverloadablePropertyNode(
+          node as ts.TypeAliasDeclaration,
+          parseNameFromNode(node),
+          context,
+        ),
       );
       break;
 
     case ts.SyntaxKind.ClassDeclaration:
       context.addChild(
         parseNameFromNode(node),
-        factory.createPropertyNode(node),
+        factory.createPropertyNode(node as ts.ClassDeclaration),
       );
       break;
 
     case ts.SyntaxKind.VariableStatement:
       context.addChild(
         parseNameFromNode(node),
-        factory.createPropertyNode(node),
+        factory.createPropertyNode(node as ts.ClassDeclaration),
       );
       break;
 
     case ts.SyntaxKind.ExportAssignment:
       context.addChild(
         "exportassign" + parseNameFromNode(node),
-        factory.createExportNode(node),
+        factory.createExportNode(node as ts.ExportAssignment),
       );
       break;
 
     case ts.SyntaxKind.ImportDeclaration:
-      context.addChild(parseNameFromNode(node), factory.createImportNode(node));
+      context.addChild(
+        parseNameFromNode(node),
+        factory.createImportNode(node as ts.ImportDeclaration),
+      );
       break;
 
     case ts.SyntaxKind.ExportDeclaration:
       context.addChild(
         "exportdecl" + parseNameFromNode(node),
-        factory.createExportDeclarationNode(node),
+        factory.createExportDeclarationNode(node as ts.ExportDeclaration),
       );
       break;
 
@@ -112,7 +132,7 @@ const collectNode = (node: RawNode, context: Node, factory: Factory): void => {
     case ts.SyntaxKind.EnumDeclaration:
       context.addChild(
         parseNameFromNode(node),
-        factory.createPropertyNode(node),
+        factory.createPropertyNode(node as ts.EnumDeclaration),
       );
       break;
 
@@ -126,11 +146,17 @@ const collectNode = (node: RawNode, context: Node, factory: Factory): void => {
 };
 
 // Walk the AST and extract all the definitions we care about
-const traverseNode = (node, context: Node, factory: Factory): void => {
-  if (!node.statements) {
-    collectNode(node, context, factory);
+const traverseNode = (node: ts.Node, context: Node, factory: Factory): void => {
+  // @ts-expect-error
+  const statements = node.statements;
+  if (statements) {
+    // On all TS nodes with a `statements` property, it's a
+    // `NodeArray<Statement>` (or a subtype of that.)
+    (statements as ts.NodeArray<ts.Statement>).forEach(n =>
+      collectNode(n, context, factory),
+    );
   } else {
-    node.statements.forEach(n => collectNode(n, context, factory));
+    collectNode(node, context, factory);
   }
 };
 
@@ -192,7 +218,7 @@ function createMakeNameCompatibleWithFlowTransformer(
     context: ts.TransformationContext,
   ) {
     const { factory } = context;
-    const visitor = (node: ts.Node): ts.Node | ts.Node[] => {
+    const visitor = (node: ts.Node): ts.Node => {
       if (ts.isTypeAliasDeclaration(node)) {
         const s = checker.current.getSymbolAtLocation(node.name);
         if (duplicatedSymbols.has(s)) {
@@ -241,8 +267,9 @@ function createMakeNameCompatibleWithFlowTransformer(
 }
 
 // In TypeScript you can have the same name for a variable and a type but not in FlowJs
-function makeNameCompatibleWithFlow(ast: any) {
+function makeNameCompatibleWithFlow(ast: ts.SourceFile): ts.SourceFile {
   const [duplicatedSymbols, usedNames] = findDuplicatedSymbolsAndUsedNames(ast);
+  // @ts-expect-error really does return a SourceFile
   return ts.transform(ast, [
     createMakeNameCompatibleWithFlowTransformer(
       new Set(duplicatedSymbols),
@@ -251,7 +278,7 @@ function makeNameCompatibleWithFlow(ast: any) {
   ]).transformed[0];
 }
 
-export function recursiveWalkTree(ast: any): ModuleNode {
+export function recursiveWalkTree(ast: ts.SourceFile): ModuleNode {
   const factory = NodeFactory.create();
 
   const root = factory.createModuleNode(null, "root");

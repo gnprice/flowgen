@@ -125,12 +125,19 @@ export const stripDetailsFromTree = (root: RawNode): any => {
   return root;
 };
 
-export function getMembersFromNode(node: any): void {
-  if (node.members) {
+export function getMembersFromNode(
+  node: ts.InterfaceDeclaration | ts.TypeAliasDeclaration,
+): void | ts.NodeArray<ts.Node> {
+  if (ts.isInterfaceDeclaration(node)) {
     return node.members;
   }
 
-  if (node.type && node.type.members) {
+  if (
+    ts.isTypeLiteralNode(node.type) ||
+    ts.isClassLike(node.type) ||
+    ts.isInterfaceDeclaration(node.type) ||
+    ts.isEnumDeclaration(node.type)
+  ) {
     return node.type.members;
   }
 

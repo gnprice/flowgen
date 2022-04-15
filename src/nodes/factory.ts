@@ -1,11 +1,11 @@
-import type { RawNode } from "./node";
+import ts from "typescript";
 
 import type Node from "./node";
 import ImportNode from "./import";
 import ExportNode from "./export";
 import ExportDeclarationNode from "./export-declaration";
 import ModuleNode from "./module";
-import PropertyNode from "./property";
+import PropertyNode, { maybeAddMembers } from "./property";
 import NamespaceNode from "./namespace";
 
 import { getMembersFromNode } from "../parse/ast";
@@ -17,10 +17,12 @@ export class Factory {
     [key: string]: ModuleNode;
   };
   _propDeclarations: {
-    [key: string]: PropertyNode;
+    [key: string]: PropertyNode<
+      ts.InterfaceDeclaration | ts.TypeAliasDeclaration
+    >;
   };
   _functionDeclarations: {
-    [key: string]: Array<PropertyNode>;
+    [key: string]: Array<PropertyNode<ts.FunctionDeclaration>>;
   };
 
   constructor() {
@@ -34,7 +36,10 @@ export class Factory {
 
   // If multiple declarations are found for the same module name
   // return the memoized instance of the module instead
-  createModuleNode(node: RawNode, name: string): ModuleNode {
+  createModuleNode(
+    node: null | ts.ModuleDeclaration,
+    name: string,
+  ): ModuleNode {
     if (Object.keys(this._modules).includes(name)) {
       return this._modules[name];
     }
@@ -47,7 +52,7 @@ export class Factory {
   }
 
   createFunctionDeclaration(
-    node: RawNode,
+    node: ts.FunctionDeclaration,
     rawName: string,
     context: Node,
   ): void {
@@ -71,14 +76,22 @@ export class Factory {
     context.addChild(name + this._functionDeclarations[name].length, propNode);
   }
 
+  createPropertyNode(
+    node: ts.ClassDeclaration | ts.VariableStatement | ts.EnumDeclaration,
+  ): PropertyNode<
+    ts.ClassDeclaration | ts.VariableStatement | ts.EnumDeclaration
+  > {
+    return new PropertyNode(node);
+  }
+
   // Some definition files (like lodash) declare the same
   // interface/type/function multiple times as a way of overloading.
   // Flow does not support that, and this is where we handle that
-  createPropertyNode(
-    node: RawNode,
-    name?: string,
-    context?: Node,
-  ): PropertyNode {
+  createOverloadablePropertyNode(
+    node: ts.InterfaceDeclaration | ts.TypeAliasDeclaration,
+    name: string,
+    context: Node,
+  ): PropertyNode<ts.InterfaceDeclaration | ts.TypeAliasDeclaration> {
     if (typeof name === "undefined") {
       return new PropertyNode(node);
     }
@@ -92,7 +105,12 @@ export class Factory {
     }
 
     if (Object.keys(this._propDeclarations).includes(name)) {
-      this._propDeclarations[name].maybeAddMember(getMembersFromNode(node));
+      if (ts.isInterfaceDeclaration(node))
+        maybeAddMembers(
+          this._propDeclarations[name] as PropertyNode<ts.InterfaceDeclaration>,
+          // @ts-expect-error TODO WORK HERE; does the existing this._propDeclarations[name] have to agree in type with this `node`?
+          getMembersFromNode(node),
+        );
 
       return this._propDeclarations[name];
     }
@@ -103,7 +121,7 @@ export class Factory {
   }
 
   createNamespaceNode = (
-    node: RawNode,
+    node: ts.ModuleDeclaration,
     name: string,
     context: Node,
   ): NamespaceNode => {
@@ -132,10 +150,16 @@ export class Factory {
       return new NamespaceNode(name);
     }
   };
-  createImportNode = (node: RawNode): ImportNode => new ImportNode(node);
-  createExportNode = (node: RawNode): ExportNode => new ExportNode(node);
-  createExportDeclarationNode = (node: RawNode): ExportDeclarationNode =>
-    new ExportDeclarationNode(node);
+
+  createImportNode = (node: ts.ImportDeclaration): ImportNode =>
+    new ImportNode(node);
+
+  createExportNode = (node: ts.ExportAssignment): ExportNode =>
+    new ExportNode(node);
+
+  createExportDeclarationNode = (
+    node: ts.ExportDeclaration,
+  ): ExportDeclarationNode => new ExportDeclarationNode(node);
 }
 
 export default {

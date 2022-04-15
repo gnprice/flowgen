@@ -1,4 +1,3 @@
-import type { RawNode } from "./node";
 import type {
   FunctionDeclaration,
   ClassDeclaration,
@@ -6,46 +5,27 @@ import type {
   TypeAliasDeclaration,
   EnumDeclaration,
   VariableStatement,
-  JSDoc,
 } from "typescript";
 import * as ts from "typescript";
 import Node from "./node";
 
 import * as printers from "../printers";
 import namespaceManager from "../namespace-manager";
-import { parseNameFromNode } from "../parse/ast";
+import { parseNameFromNode, stripDetailsFromTree } from "../parse/ast";
 
 type PropertyNode =
-  | ({
-      //kind: "FunctionDeclaration",
-      jsDoc: Array<JSDoc>;
-    } & FunctionDeclaration)
-  | ({
-      //kind: "ClassDeclaration",
-      jsDoc: Array<JSDoc>;
-    } & ClassDeclaration)
-  | ({
-      //kind: "InterfaceDeclaration",
-      jsDoc: Array<JSDoc>;
-    } & InterfaceDeclaration)
-  | ({
-      //kind: "TypeAliasDeclaration",
-      jsDoc: Array<JSDoc>;
-    } & TypeAliasDeclaration)
-  | ({
-      //kind: "EnumDeclaration",
-      jsDoc: Array<JSDoc>;
-    } & EnumDeclaration)
-  | ({
-      //kind: "VariableStatement",
-      jsDoc: Array<JSDoc>;
-    } & VariableStatement);
+  | FunctionDeclaration
+  | ClassDeclaration
+  | InterfaceDeclaration
+  | TypeAliasDeclaration
+  | EnumDeclaration
+  | VariableStatement;
 
-export default class Property extends Node<PropertyNode> {
+export default class Property<N extends PropertyNode> extends Node<N> {
   name: string;
   skip: boolean;
 
-  constructor(node: RawNode) {
+  constructor(node: N) {
     super(node);
 
     this.name = parseNameFromNode(node);
@@ -68,9 +48,7 @@ export default class Property extends Node<PropertyNode> {
       name = namespace + "$" + name;
     }
 
-    if (this.raw.jsDoc) {
-      out += printers.common.comment(this.raw.jsDoc);
-    }
+    out += printers.common.jsdoc(this.raw);
 
     const isDeclare = mod !== "root";
     const exporter = printers.relationships.exporter(this.raw);
@@ -116,7 +94,7 @@ export default class Property extends Node<PropertyNode> {
       case ts.SyntaxKind.VariableStatement:
         for (const decl of this.raw.declarationList.declarations) {
           if (namespace && decl.name.kind === ts.SyntaxKind.Identifier) {
-            const text = (decl.name as any).text;
+            const text = decl.name.text;
             namespaceManager.registerProp(namespace, text);
           }
         }
@@ -128,4 +106,24 @@ export default class Property extends Node<PropertyNode> {
     }
     return out;
   }
+}
+
+/**
+ * Used for overloading the props of some types
+ */
+export function maybeAddMembers<
+  N extends ts.ClassDeclaration | ts.InterfaceDeclaration | ts.EnumDeclaration,
+>(node: Property<N>, members: void | N["members"]): void {
+  if (!members) return;
+  if (
+    ts.isFunctionDeclaration(node.raw) ||
+    ts.isTypeAliasDeclaration(node.raw) ||
+    ts.isVariableStatement(node.raw)
+  )
+    return;
+  const rawMembers = node.raw.members;
+  members.forEach((member: typeof members[0]) => {
+    // @ts-expect-error ts.NodeArray is read-only, but we push to it
+    rawMembers.push(stripDetailsFromTree(member));
+  });
 }
