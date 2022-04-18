@@ -59,15 +59,9 @@ export const variableDeclaration = (node: ts.VariableStatement): string => {
     .join("\n");
 };
 
-export const interfaceType = <T>(
+const typeMembers = (
   node: ts.InterfaceDeclaration | ts.ClassDeclaration | ts.TypeLiteralNode,
-  nodeName: string,
-  mergedNamespaceChildren: ReadonlyArray<Node<T>>,
-  withSemicolons = false,
-  isType = false,
-): string => {
-  const isInexact = opts().inexact;
-
+): string[] => {
   const members: string[] = [];
   for (const member of node.members) {
     const printed = printers.node.printType(member);
@@ -77,6 +71,19 @@ export const interfaceType = <T>(
     }
     members.push("\n" + printers.common.jsdoc(member) + printed);
   }
+  return members;
+};
+
+export const interfaceType = <T>(
+  node: ts.InterfaceDeclaration | ts.ClassDeclaration | ts.TypeLiteralNode,
+  nodeName: string,
+  mergedNamespaceChildren: ReadonlyArray<Node<T>>,
+  withSemicolons = false,
+  isType = false,
+): string => {
+  const isInexact = opts().inexact;
+
+  const members = typeMembers(node);
 
   if (mergedNamespaceChildren.length > 0) {
     for (const child of Namespace.formatChildren(
@@ -107,16 +114,7 @@ const interfaceRecordType = (
   heritage: string,
 ): string => {
   const isInexact = opts().inexact;
-  let members = node.members
-    .map(member => {
-      const printed = printers.node.printType(member);
-      if (!printed) {
-        return null;
-      }
-      return "\n" + printers.common.jsdoc(member) + printed;
-    })
-    .filter(Boolean) // Filter rows which didnt print propely (private fields et al)
-    .join(",");
+  let members = typeMembers(node).join(",");
 
   if (members.length > 0) {
     members += "\n";
