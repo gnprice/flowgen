@@ -141,16 +141,19 @@ const interfaceRecordType = (
   heritage: string,
 ): string => {
   const isInexact = opts().inexact;
-  let members = typeMembers(node).join(",");
 
-  if (members.length > 0) {
-    members += "\n";
+  const members = typeMembers(node);
+  if (isInexact) {
+    members.push("...\n");
+  } else if (members.length > 0) {
+    members.push("\n");
   }
 
+  const membersText = members.join(",");
   if (isInexact) {
-    return `{${heritage}${members}}`;
+    return `{${heritage}${membersText}}`;
   } else {
-    return `{|${heritage}${members}|}`;
+    return `{|${heritage}${membersText}|}`;
   }
 };
 
