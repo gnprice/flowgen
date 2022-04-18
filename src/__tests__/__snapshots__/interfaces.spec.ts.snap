@@ -70,7 +70,9 @@ exports[`should handle interface merging 1`] = `
 exports[`should handle interface merging 2`] = `
 "declare type User = {
   firstName: string,
+
   lastName: string,
+
   username: string,
   ...
 };

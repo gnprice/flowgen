@@ -140,21 +140,10 @@ const interfaceRecordType = (
   node: ts.InterfaceDeclaration,
   heritage: string,
 ): string => {
-  const isInexact = opts().inexact;
-
   const members = typeMembers(node);
-  if (isInexact) {
-    members.push("...\n");
-  } else if (members.length > 0) {
-    members.push("\n");
-  }
-
-  const membersText = members.join(",");
-  if (isInexact) {
-    return `{${heritage}${membersText}}`;
-  } else {
-    return `{|${heritage}${membersText}|}`;
-  }
+  return printers.common.printObjectType(
+    heritage ? [heritage, ...members] : members,
+  );
 };
 
 const classHeritageClause = withEnv<
@@ -219,7 +208,6 @@ const interfaceRecordDeclaration = (
           .join(",\n");
       })
       .join("");
-    heritage = heritage.length > 0 ? `${heritage},\n` : "";
   }
 
   const str = `${modifier}type ${nodeName}${printers.common.generics(
