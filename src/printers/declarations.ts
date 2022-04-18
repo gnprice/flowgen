@@ -74,9 +74,15 @@ const typeMembers = (
   return members;
 };
 
-/** Print as a Flow object type. */
+/**
+ * Print as a Flow object type.
+ *
+ * If `forceInexact`, then print as an inexact object type.  Otherwise, the
+ * exactness will be governed by the `inexact` option.
+ */
 export const objectType = (
   node: ts.InterfaceDeclaration | ts.TypeLiteralNode,
+  forceInexact: boolean,
 ): string => {
   const isInexact = opts().inexact;
 
@@ -90,11 +96,7 @@ export const objectType = (
 
   const inner = members.join(",");
 
-  // we only want type literals to be exact. i.e. class Foo {} should not be class Foo {||}
-  if (!ts.isTypeLiteralNode(node)) {
-    return `{${inner}}`;
-  }
-  return isInexact ? `{${inner}}` : `{|${inner}|}`;
+  return isInexact || forceInexact ? `{${inner}}` : `{|${inner}|}`;
 };
 
 /** Print as a Flow interface type's body (the `{…}` portion.) */
@@ -245,7 +247,7 @@ export const interfaceDeclaration = (
 
     return `${modifier}type ${nodeName}${printers.common.generics(
       node.typeParameters,
-    )} = ${objectType(node)} ${heritage}`;
+    )} = ${objectType(node, true /* inexact so `&` works */)} ${heritage}`;
   } else {
     return `${modifier}interface ${nodeName}${printers.common.generics(
       node.typeParameters,
