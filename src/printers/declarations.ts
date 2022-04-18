@@ -67,15 +67,16 @@ export const interfaceType = <T>(
   isType = false,
 ): string => {
   const isInexact = opts().inexact;
-  const members = node.members
-    .map(member => {
-      const printed = printers.node.printType(member);
-      if (!printed) {
-        return null;
-      }
-      return "\n" + printers.common.jsdoc(member) + printed;
-    })
-    .filter(Boolean); // Filter rows which didn't print properly (private fields et al)
+
+  const members: string[] = [];
+  for (const member of node.members) {
+    const printed = printers.node.printType(member);
+    if (!printed) {
+      // Filter rows which didn't print properly (private fields et al)
+      continue;
+    }
+    members.push("\n" + printers.common.jsdoc(member) + printed);
+  }
 
   if (mergedNamespaceChildren.length > 0) {
     for (const child of Namespace.formatChildren(
