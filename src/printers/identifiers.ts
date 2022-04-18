@@ -34,7 +34,7 @@ const identifiers: { [name: string]: IdentifierResult } = {
   Partial: ([type]: any[]) => {
     return `$Rest<${printers.node.printType(
       type,
-    )}, ${printers.common.printObjectType([], true)}>`;
+    )}, ${printers.common.printInexactObjectType([])}>`;
   },
   ReturnType: (typeArguments: any[]) => {
     return `$Call<<R>((...args: any[]) => R) => R, ${printers.node.printType(
@@ -43,13 +43,13 @@ const identifiers: { [name: string]: IdentifierResult } = {
   },
   Record: ([keys, value]: [any, any]) => {
     const members = recordMembers(keys, value);
-    return printers.common.printObjectType(members);
+    return printers.common.printDefaultObjectType(members);
   },
   Omit: ([obj, keys]: [any, any]) => {
     const members = recordMembers(keys, { kind: ts.SyntaxKind.AnyKeyword });
     return `$Diff<${printers.node.printType(
       obj,
-    )},${printers.common.printObjectType(members, false)}>`;
+    )},${printers.common.printExactObjectType(members)}>`;
   },
 };
 

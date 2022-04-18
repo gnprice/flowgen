@@ -179,7 +179,7 @@ const interfaceRecordDeclaration = (
 
   const str = `${modifier}type ${nodeName}${printers.common.generics(
     node.typeParameters,
-  )} = ${printers.common.printObjectType(members)}\n`;
+  )} = ${printers.common.printDefaultObjectType(members)}\n`;
 
   return str;
 };
@@ -205,10 +205,10 @@ export const interfaceDeclaration = (
 
     return `${modifier}type ${nodeName}${printers.common.generics(
       node.typeParameters,
-    )} = ${printers.common.printObjectType(
-      typeMembers(node),
-      true /* inexact so `&` works */,
-    )} ${heritage}`;
+    )} = ${
+      // inexact so `&` works
+      printers.common.printInexactObjectType(typeMembers(node))
+    } ${heritage}`;
   } else {
     return `${modifier}interface ${nodeName}${printers.common.generics(
       node.typeParameters,
@@ -245,9 +245,8 @@ export const enumDeclaration = (
     members.push(`+${member.name.text}: ${value}`);
   }
   return `
-declare ${exporter} var ${nodeName}: ${printers.common.printObjectType(
+declare ${exporter} var ${nodeName}: ${printers.common.printExactObjectType(
     members,
-    false,
   )};\n`;
 };
 

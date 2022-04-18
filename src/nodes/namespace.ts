@@ -101,9 +101,8 @@ export default class Namespace extends Node {
     if (childrenDeclarations.length > 0) {
       let topLevel = "";
       const nsGroup = `
-      declare var npm$namespace$${name}: ${printers.common.printObjectType(
+      declare var npm$namespace$${name}: ${printers.common.printExactObjectType(
         childrenDeclarations,
-        false,
       )}\n`;
       if (namespace === "") {
         topLevel = `declare var ${name}: typeof npm$namespace$${name};\n`;
