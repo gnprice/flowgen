@@ -5,27 +5,42 @@ import { opts } from "../options";
 import { withEnv } from "../env";
 import ts from "typescript";
 
+const printObjectType = (members: string[], isInexact: boolean | void) => {
+  isInexact ??= opts().inexact;
+
+  if (members.length === 0) {
+    return isInexact ? `{...}` : `{||}`;
+  } else if (members.length === 1) {
+    const member = members[0];
+    return isInexact ? `{${member}, ...}` : `{|${member}|}`;
+  } else {
+    const membersText = members.join(",\n");
+    return isInexact ? `{${membersText},\n...}` : `{|${membersText}|}`;
+  }
+};
+
 const Record = ([key, value]: [any, any], isInexact = opts().inexact) => {
   const valueType = printers.node.printType(value);
 
   switch (key.kind) {
     case ts.SyntaxKind.LiteralType:
-      return `{ ${printers.node.printType(key)}: ${valueType}${
-        isInexact ? ", ..." : ""
-      }}`;
+      return printObjectType(
+        [`${printers.node.printType(key)}: ${valueType}`],
+        isInexact,
+      );
     case ts.SyntaxKind.UnionType:
       if (key.types.every(t => t.kind === ts.SyntaxKind.LiteralType)) {
-        const fields = key.types.reduce((acc, t) => {
-          acc += `${printers.node.printType(t)}: ${valueType},\n`;
-          return acc;
-        }, "");
-        return `{ ${fields}${isInexact ? "..." : ""}}`;
+        const fields = key.types.map(
+          t => `${printers.node.printType(t)}: ${valueType}`,
+        );
+        return printObjectType(fields, isInexact);
       }
     // Fallthrough
     default:
-      return `{[key: ${printers.node.printType(key)}]: ${valueType}${
-        isInexact ? ", ..." : ""
-      }}`;
+      return printObjectType(
+        [`[key: ${printers.node.printType(key)}]: ${valueType}`],
+        isInexact,
+      );
   }
 };
 
