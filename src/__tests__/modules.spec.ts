@@ -32,7 +32,10 @@ declare module 'test' {
   export const error: string
 }
 `;
-  const result = compiler.compileDefinitionString(ts, { quiet: true });
+  const result = compiler.compileDefinitionString(ts, {
+    quiet: true,
+    inexact: false,
+  });
   expect(beautify(result)).toMatchSnapshot();
   expect(result).toBeValidFlowTypeDeclarations();
 });
