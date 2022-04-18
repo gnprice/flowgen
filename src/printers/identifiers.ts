@@ -5,27 +5,27 @@ import { opts } from "../options";
 import { withEnv } from "../env";
 import ts from "typescript";
 
-const Record = ([key, value]: [any, any], isInexact = opts().inexact) => {
+const Record = ([key, value]: [any, any], inexact?: boolean) => {
   const valueType = printers.node.printType(value);
 
   switch (key.kind) {
     case ts.SyntaxKind.LiteralType:
       return printers.common.printObjectType(
         [`${printers.node.printType(key)}: ${valueType}`],
-        isInexact,
+        inexact,
       );
     case ts.SyntaxKind.UnionType:
       if (key.types.every(t => t.kind === ts.SyntaxKind.LiteralType)) {
         const fields = key.types.map(
           t => `${printers.node.printType(t)}: ${valueType}`,
         );
-        return printers.common.printObjectType(fields, isInexact);
+        return printers.common.printObjectType(fields, inexact);
       }
     // Fallthrough
     default:
       return printers.common.printObjectType(
         [`[key: ${printers.node.printType(key)}]: ${valueType}`],
-        isInexact,
+        inexact,
       );
   }
 };
