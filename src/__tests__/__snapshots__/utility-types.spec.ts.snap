@@ -4,7 +4,6 @@ exports[`should handle Omit type 1`] = `
 "declare type A = $Diff<
   {
     a: string,
-
     b: number,
     ...
   },
@@ -13,18 +12,13 @@ exports[`should handle Omit type 1`] = `
 declare type B = $Diff<
   {
     a: string,
-
     b: number,
     ...
   },
-  {|
-    a: any,
-    b: any,
-  |}
+  {| a: any, b: any |}
 >;
 declare type O = {
   a: string,
-
   b: number,
   ...
 };
