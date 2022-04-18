@@ -105,7 +105,6 @@ export const interfaceType = <T>(
 const interfaceRecordType = (
   node: ts.InterfaceDeclaration,
   heritage: string,
-  withSemicolons = false,
 ): string => {
   const isInexact = opts().inexact;
   let members = node.members
@@ -117,7 +116,7 @@ const interfaceRecordType = (
       return "\n" + printers.common.jsdoc(member) + printed;
     })
     .filter(Boolean) // Filter rows which didnt print propely (private fields et al)
-    .join(withSemicolons ? ";" : ",");
+    .join(",");
 
   if (members.length > 0) {
     members += "\n";
