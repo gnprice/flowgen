@@ -15,7 +15,10 @@ declare type B = $Diff<
     b: number,
     ...
   },
-  {| a: any, b: any |}
+  {|
+    a: any,
+    b: any,
+  |}
 >;
 declare type O = {
   a: string,
@@ -28,17 +31,8 @@ declare type C = $Diff<O, {| [key: U]: any |}>;
 `;
 
 exports[`should handle utility types 1`] = `
-"declare type A = $ReadOnly<{
-  a: number,
-  ...
-}>;
-declare type B = $Rest<
-  {
-    a: number,
-    ...
-  },
-  { ... }
->;
+"declare type A = $ReadOnly<{ a: number, ... }>;
+declare type B = $Rest<{ a: number, ... }, { ... }>;
 declare type C = $NonMaybeType<string | null>;
 declare type D = $ReadOnlyArray<string>;
 declare type E = $Call<<R>((...args: any[]) => R) => R, () => string>;

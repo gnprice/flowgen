@@ -69,7 +69,7 @@ const typeMembers = (
       // Filter rows which didn't print properly (private fields et al)
       continue;
     }
-    members.push("\n" + printers.common.jsdoc(member) + printed);
+    members.push(printers.common.jsdoc(member) + printed);
   }
   return members;
 };
