@@ -70,9 +70,9 @@ export const parameter = (
       if (param.name.elements.length > 0) {
         right = `{${param.name.elements
           .map(element => `${printers.node.printType(element)}: any`)
-          .join(", ")}}`;
+          .join(", ")}, ...}`;
       } else {
-        right = "{}";
+        right = "{...}";
       }
     } else {
       right = "any";
