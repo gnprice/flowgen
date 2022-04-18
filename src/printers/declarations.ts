@@ -84,7 +84,7 @@ export const objectType = (
   node: ts.InterfaceDeclaration | ts.TypeLiteralNode,
   forceInexact: boolean,
 ): string => {
-  const isInexact = opts().inexact;
+  const isInexact = opts().inexact || forceInexact;
 
   const members = typeMembers(node);
 
@@ -96,7 +96,7 @@ export const objectType = (
 
   const inner = members.join(",");
 
-  return isInexact || forceInexact ? `{${inner}}` : `{|${inner}|}`;
+  return isInexact ? `{${inner}}` : `{|${inner}|}`;
 };
 
 /** Print as a Flow interface type's body (the `{…}` portion.) */
