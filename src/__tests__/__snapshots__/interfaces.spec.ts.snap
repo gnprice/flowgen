@@ -51,6 +51,7 @@ exports[`should handle interface inheritance 4`] = `
 }
 declare type SpecialUser = {
   nice: number,
+  ...
 } & User;
 "
 `;
