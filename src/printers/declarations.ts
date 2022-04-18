@@ -74,15 +74,34 @@ const typeMembers = (
   return members;
 };
 
-export const interfaceType = <T>(
-  node: ts.InterfaceDeclaration | ts.ClassDeclaration | ts.TypeLiteralNode,
-  nodeName: string,
-  mergedNamespaceChildren: ReadonlyArray<Node<T>>,
-  withSemicolons = false,
+export const interfaceType = (
+  node: ts.InterfaceDeclaration | ts.TypeLiteralNode,
   isType = false,
 ): string => {
   const isInexact = opts().inexact;
 
+  const members = typeMembers(node);
+
+  if (isType && isInexact) {
+    members.push("...\n");
+  } else if (members.length > 0) {
+    members.push("\n");
+  }
+
+  const inner = members.join(",");
+
+  // we only want type literals to be exact. i.e. class Foo {} should not be class Foo {||}
+  if (!ts.isTypeLiteralNode(node)) {
+    return `{${inner}}`;
+  }
+  return isInexact ? `{${inner}}` : `{|${inner}|}`;
+};
+
+const classBody = <T>(
+  node: ts.ClassDeclaration,
+  nodeName: string,
+  mergedNamespaceChildren: ReadonlyArray<Node<T>>,
+): string => {
   const members = typeMembers(node);
 
   if (mergedNamespaceChildren.length > 0) {
@@ -94,19 +113,13 @@ export const interfaceType = <T>(
     }
   }
 
-  if (isType && isInexact) {
-    members.push("...\n");
-  } else if (members.length > 0) {
+  if (members.length > 0) {
     members.push("\n");
   }
 
-  const inner = members.join(withSemicolons ? ";" : ",");
+  const inner = members.join(";");
 
-  // we only want type literals to be exact. i.e. class Foo {} should not be class Foo {||}
-  if (!ts.isTypeLiteralNode(node)) {
-    return `{${inner}}`;
-  }
-  return isInexact ? `{${inner}}` : `{|${inner}|}`;
+  return `{${inner}}`;
 };
 
 const interfaceRecordType = (
@@ -226,9 +239,6 @@ export const interfaceDeclaration = (
     node.typeParameters,
   )} ${type === "type" ? "= " : ""}${interfaceType(
     node,
-    nodeName,
-    [],
-    false,
     type === "type",
   )} ${heritage}`;
 
@@ -315,12 +325,7 @@ export const classDeclaration = <T>(
     node,
   )}class ${nodeName}${printers.common.generics(
     node.typeParameters,
-  )} ${heritage} ${interfaceType(
-    node,
-    nodeName,
-    mergedNamespaceChildren,
-    true,
-  )}`;
+  )} ${heritage} ${classBody(node, nodeName, mergedNamespaceChildren)}`;
 
   return str;
 };
