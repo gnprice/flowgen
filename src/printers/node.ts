@@ -498,7 +498,9 @@ export const printType = withEnv<any, [any], string>(
         return printers.functions.functionType(type);
 
       case ts.SyntaxKind.TypeLiteral:
-        return printers.declarations.objectType(type);
+        return printers.common.printObjectType(
+          printers.declarations.typeMembers(type),
+        );
 
       //case SyntaxKind.IdentifierObject:
       //case SyntaxKind.StringLiteralType:

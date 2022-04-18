@@ -59,7 +59,10 @@ export const variableDeclaration = (node: ts.VariableStatement): string => {
     .join("\n");
 };
 
-const typeMembers = (
+/**
+ * The members of the type, printed with their jsdoc.
+ */
+export const typeMembers = (
   node: ts.InterfaceDeclaration | ts.ClassDeclaration | ts.TypeLiteralNode,
 ): string[] => {
   const members: string[] = [];
@@ -72,18 +75,6 @@ const typeMembers = (
     members.push(printers.common.jsdoc(member) + printed);
   }
   return members;
-};
-
-/**
- * Print as a Flow object type.
- *
- * If `inexact` is undefined, it defaults to the global option `inexact`.
- */
-export const objectType = (
-  node: ts.InterfaceDeclaration | ts.TypeLiteralNode,
-  inexact?: boolean,
-): string => {
-  return printers.common.printObjectType(typeMembers(node), inexact);
 };
 
 /** Print as a Flow interface type's body (the `{…}` portion.) */
@@ -225,7 +216,10 @@ export const interfaceDeclaration = (
 
     return `${modifier}type ${nodeName}${printers.common.generics(
       node.typeParameters,
-    )} = ${objectType(node, true /* inexact so `&` works */)} ${heritage}`;
+    )} = ${printers.common.printObjectType(
+      typeMembers(node),
+      true /* inexact so `&` works */,
+    )} ${heritage}`;
   } else {
     return `${modifier}interface ${nodeName}${printers.common.generics(
       node.typeParameters,
