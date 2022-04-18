@@ -77,17 +77,13 @@ const typeMembers = (
 /**
  * Print as a Flow object type.
  *
- * If `forceInexact`, then print as an inexact object type.  Otherwise, the
- * exactness will be governed by the `inexact` option.
+ * If `inexact` is undefined, it defaults to the global option `inexact`.
  */
 export const objectType = (
   node: ts.InterfaceDeclaration | ts.TypeLiteralNode,
-  forceInexact: boolean,
+  inexact?: boolean,
 ): string => {
-  return printers.common.printObjectType(
-    typeMembers(node),
-    forceInexact || undefined,
-  );
+  return printers.common.printObjectType(typeMembers(node), inexact);
 };
 
 /** Print as a Flow interface type's body (the `{…}` portion.) */
