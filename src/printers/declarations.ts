@@ -259,8 +259,7 @@ export const enumDeclaration = (
     } else {
       value = index;
     }
-    members += `+${member.name.text}: ${value},`;
-    members += `// ${value}\n`;
+    members += `+${member.name.text}: ${value},\n`;
   }
   return `
 declare ${exporter} var ${nodeName}: {|
