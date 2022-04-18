@@ -22,6 +22,25 @@ export const literalType = (node: RawNode): string => {
   return printers.node.printType(node.type);
 };
 
+/**
+ * Print as a Flow object type.
+ *
+ * If `inexact` is undefined, it defaults to the global option `inexact`.
+ */
+export const printObjectType = (members: string[], inexact: boolean | void) => {
+  inexact ??= opts().inexact;
+
+  if (members.length === 0) {
+    return inexact ? `{...}` : `{||}`;
+  } else if (members.length === 1) {
+    const member = members[0];
+    return inexact ? `{${member}, ...}` : `{|${member}|}`;
+  } else {
+    const membersText = members.join(",\n");
+    return inexact ? `{${membersText},\n...}` : `{|${membersText}|}`;
+  }
+};
+
 export const typeParameter = (
   node: ts.TypeParameterDeclaration & {
     withoutDefault: boolean;

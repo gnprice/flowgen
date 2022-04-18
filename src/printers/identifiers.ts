@@ -5,26 +5,12 @@ import { opts } from "../options";
 import { withEnv } from "../env";
 import ts from "typescript";
 
-const printObjectType = (members: string[], isInexact: boolean | void) => {
-  isInexact ??= opts().inexact;
-
-  if (members.length === 0) {
-    return isInexact ? `{...}` : `{||}`;
-  } else if (members.length === 1) {
-    const member = members[0];
-    return isInexact ? `{${member}, ...}` : `{|${member}|}`;
-  } else {
-    const membersText = members.join(",\n");
-    return isInexact ? `{${membersText},\n...}` : `{|${membersText}|}`;
-  }
-};
-
 const Record = ([key, value]: [any, any], isInexact = opts().inexact) => {
   const valueType = printers.node.printType(value);
 
   switch (key.kind) {
     case ts.SyntaxKind.LiteralType:
-      return printObjectType(
+      return printers.common.printObjectType(
         [`${printers.node.printType(key)}: ${valueType}`],
         isInexact,
       );
@@ -33,11 +19,11 @@ const Record = ([key, value]: [any, any], isInexact = opts().inexact) => {
         const fields = key.types.map(
           t => `${printers.node.printType(t)}: ${valueType}`,
         );
-        return printObjectType(fields, isInexact);
+        return printers.common.printObjectType(fields, isInexact);
       }
     // Fallthrough
     default:
-      return printObjectType(
+      return printers.common.printObjectType(
         [`[key: ${printers.node.printType(key)}]: ${valueType}`],
         isInexact,
       );
