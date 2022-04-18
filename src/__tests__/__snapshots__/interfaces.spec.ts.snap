@@ -45,6 +45,16 @@ declare type SpecialUser = {|
 "
 `;
 
+exports[`should handle interface inheritance 4`] = `
+"declare interface User {
+  firstName: string;
+}
+declare type SpecialUser = {
+  nice: number,
+} & User;
+"
+`;
+
 exports[`should handle interface merging 1`] = `
 "declare interface User {
   firstName: string;
