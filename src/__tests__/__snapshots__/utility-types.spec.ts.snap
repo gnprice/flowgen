@@ -15,7 +15,10 @@ declare type B = $Diff<
     b: number,
     ...
   },
-  {| a: any, b: any |}
+  {|
+    a: any,
+    b: any,
+  |}
 >;
 declare type O = {
   a: string,

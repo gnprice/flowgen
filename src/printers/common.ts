@@ -37,7 +37,7 @@ export const printObjectType = (members: string[], inexact: boolean | void) => {
     return inexact ? `{${member}, ...}` : `{|${member}|}`;
   } else {
     const membersText = members.join(",\n");
-    return inexact ? `{${membersText},\n...}` : `{|${membersText}|}`;
+    return inexact ? `{\n${membersText},\n...\n}` : `{|\n${membersText}\n|}`;
   }
 };
 
