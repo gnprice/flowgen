@@ -7,6 +7,7 @@ exports[`should handle module 1`] = `
   declare type Maybe<T> =
     | {
         type: \\"just\\",
+
         value: T,
         ...
       }

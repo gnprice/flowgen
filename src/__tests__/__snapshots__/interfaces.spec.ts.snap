@@ -131,6 +131,7 @@ exports[`should handle typed object binding pattern 1`] = `
   (x: any): void;
   (x: {
     a: string,
+
     b: number,
     ...
   }): void;

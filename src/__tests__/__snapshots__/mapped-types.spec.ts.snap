@@ -8,6 +8,7 @@ exports[`should handle mapped types 1`] = `
 declare type SourceUnion = \\"a\\" | \\"b\\" | \\"c\\";
 declare type SourceObject = {
   a: number,
+
   d: string,
   ...
 };

@@ -76,8 +76,11 @@ declare function init(
   theme?: { [key: string]: any } | string,
   opts?: {
     devicePixelRatio?: number,
+
     renderer?: string,
+
     width?: number | string,
+
     height?: number | string,
     ...
   }

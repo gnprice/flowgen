@@ -3,12 +3,19 @@
 exports[`should approximate unsupported keys 1`] = `
 "declare type A = {
   [typeof Foo]: (() => any) | void,
+
   +[typeof Foo]: (() => any) | void,
+
   [typeof Foo]: () => any,
+
   +[typeof Foo]: () => any,
+
   [typeof Foo]: any | void,
+
   +[typeof Foo]: any | void,
+
   [typeof Foo]: any,
+
   +[typeof Foo]: any,
   ...
 };
@@ -38,20 +45,35 @@ declare interface C {
 exports[`should handle computed Symbol.iterator and Symbol.asyncIterator 1`] = `
 "declare type A = {
   @@asyncIterator: (() => any) | void,
+
   @@iterator: (() => any) | void,
+
   +@@asyncIterator: (() => any) | void,
+
   +@@iterator: (() => any) | void,
+
   @@asyncIterator: () => any,
+
   @@iterator: () => any,
+
   +@@asyncIterator: () => any,
+
   +@@iterator: () => any,
+
   @@asyncIterator: any | void,
+
   @@iterator: any | void,
+
   +@@asyncIterator: any | void,
+
   +@@iterator: any | void,
+
   @@asyncIterator: any,
+
   @@iterator: any,
+
   +@@asyncIterator: any,
+
   +@@iterator: any,
   ...
 };
@@ -97,12 +119,19 @@ declare interface C {
 exports[`should handle string literals 1`] = `
 "declare type A = {
   foo: (() => any) | void,
+
   +foo: (() => any) | void,
+
   foo: () => any,
+
   +foo: () => any,
+
   foo: any | void,
+
   +foo: any | void,
+
   foo: any,
+
   +foo: any,
   ...
 };

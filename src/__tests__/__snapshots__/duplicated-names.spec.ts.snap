@@ -10,6 +10,7 @@ exports[`should generate unique names 1`] = `
 "export type AuthMechanismType = string;
 declare export var AuthMechanism: {
   +MONGODB_AWS: \\"MONGODB-AWS\\",
+
   +MONGODB_CR: \\"MONGODB-CR\\",
   ...
 };
@@ -23,6 +24,7 @@ export type AuthMechanismType1 = $ElementType<
 exports[`should handle variable & type having same name 1`] = `
 "declare export var AuthMechanism: {
   +MONGODB_AWS: \\"MONGODB-AWS\\",
+
   +MONGODB_CR: \\"MONGODB-CR\\",
   ...
 };
