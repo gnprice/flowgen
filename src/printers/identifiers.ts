@@ -4,28 +4,21 @@ import * as printers from "./index";
 import { withEnv } from "../env";
 import ts from "typescript";
 
-const Record = ([key, value]: [any, any], inexact?: boolean) => {
+const recordMembers = (key, value) => {
   const valueType = printers.node.printType(value);
 
   switch (key.kind) {
     case ts.SyntaxKind.LiteralType:
-      return printers.common.printObjectType(
-        [`${printers.node.printType(key)}: ${valueType}`],
-        inexact,
-      );
+      return [`${printers.node.printType(key)}: ${valueType}`];
     case ts.SyntaxKind.UnionType:
       if (key.types.every(t => t.kind === ts.SyntaxKind.LiteralType)) {
-        const fields = key.types.map(
+        return key.types.map(
           t => `${printers.node.printType(t)}: ${valueType}`,
         );
-        return printers.common.printObjectType(fields, inexact);
       }
     // Fallthrough
     default:
-      return printers.common.printObjectType(
-        [`[key: ${printers.node.printType(key)}]: ${valueType}`],
-        inexact,
-      );
+      return [`[key: ${printers.node.printType(key)}]: ${valueType}`];
   }
 };
 
@@ -48,12 +41,15 @@ const identifiers: { [name: string]: IdentifierResult } = {
       typeArguments[0],
     )}>`;
   },
-  Record,
+  Record: ([keys, value]: [any, any]) => {
+    const members = recordMembers(keys, value);
+    return printers.common.printObjectType(members);
+  },
   Omit: ([obj, keys]: [any, any]) => {
-    return `$Diff<${printers.node.printType(obj)},${Record(
-      [keys, { kind: ts.SyntaxKind.AnyKeyword }],
-      false,
-    )}>`;
+    const members = recordMembers(keys, { kind: ts.SyntaxKind.AnyKeyword });
+    return `$Diff<${printers.node.printType(
+      obj,
+    )},${printers.common.printObjectType(members, false)}>`;
   },
 };
 
