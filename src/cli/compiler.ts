@@ -81,6 +81,24 @@ const randString = (): string => (Math.random() * 2 ** 54).toString(36);
 
 let total = 0;
 
+/** Inputs to `compileDefinitionString`, indexed by our random filename. */
+const definitionInputs: Map<string, { string: string; options?: Options }> =
+  new Map();
+
+const sharedCompilerHost = (() => {
+  const compilerHost = createCompilerHost({}, true);
+  const oldSourceFile = compilerHost.getSourceFile;
+  compilerHost.getSourceFile = (file, languageVersion) => {
+    const definition = definitionInputs.get(file);
+    if (definition !== undefined) {
+      const { string, options } = definition;
+      return transformFile("/dev/null", string, languageVersion, options);
+    }
+    return oldSourceFile(file, languageVersion);
+  };
+  return compilerHost;
+})();
+
 /**
  * Compiles typescript files
  */
@@ -110,20 +128,13 @@ export default {
 
     const definitionPath = `string-${randString()}.ts`;
 
-    const compilerHost = createCompilerHost({}, true);
-    const oldSourceFile = compilerHost.getSourceFile;
-    compilerHost.getSourceFile = (file, languageVersion) => {
-      if (file === definitionPath) {
-        return transformFile("/dev/null", string, languageVersion, options);
-      }
-      return oldSourceFile(file, languageVersion);
-    };
-    mark("createCompilerHost");
+    definitionInputs.set(definitionPath, { string, options });
+    mark("set");
 
     const program = createProgram(
       [definitionPath],
       compilerOptions,
-      compilerHost,
+      sharedCompilerHost,
     );
     mark("createProgram");
 
