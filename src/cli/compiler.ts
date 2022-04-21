@@ -99,19 +99,25 @@ export default {
   compileDefinitionString: (string: string, options?: Options): string => {
     reset(options);
 
+    const definitionPath = "file.ts";
+
     const compilerHost = createCompilerHost({}, true);
     const oldSourceFile = compilerHost.getSourceFile;
     compilerHost.getSourceFile = (file, languageVersion) => {
-      if (file === "file.ts") {
+      if (file === definitionPath) {
         return transformFile("/dev/null", string, languageVersion, options);
       }
       return oldSourceFile(file, languageVersion);
     };
 
-    const program = createProgram(["file.ts"], compilerOptions, compilerHost);
+    const program = createProgram(
+      [definitionPath],
+      compilerOptions,
+      compilerHost,
+    );
 
     checker.current = program.getTypeChecker();
-    const sourceFile = program.getSourceFile("file.ts");
+    const sourceFile = program.getSourceFile(definitionPath);
 
     if (!sourceFile) return "";
 
