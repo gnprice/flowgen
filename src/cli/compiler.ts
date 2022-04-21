@@ -76,6 +76,9 @@ const transformFile = (
   return createSourceFile(fileName, transformedText, languageVersion, true);
 };
 
+/** Return a string that's almost surely different every time. */
+const randString = (): string => (Math.random() * 2 ** 54).toString(36);
+
 /**
  * Compiles typescript files
  */
@@ -99,7 +102,7 @@ export default {
   compileDefinitionString: (string: string, options?: Options): string => {
     reset(options);
 
-    const definitionPath = "file.ts";
+    const definitionPath = `string-${randString()}.ts`;
 
     const compilerHost = createCompilerHost({}, true);
     const oldSourceFile = compilerHost.getSourceFile;
