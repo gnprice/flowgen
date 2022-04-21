@@ -1,11 +1,14 @@
 import { compiler, beautify } from "..";
 import "../test-matchers";
 
+const builder = new compiler.ProgramsBuilder();
+
 /* eslint jest/expect-expect: ["error", { "assertFunctionNames": ["expect", "registerTest"] }] */
 function registerTest(ts: string, options) {
   const { expectFlowValid = true, ...compilerOptions } = options ?? {};
+  const fileName = builder.add(ts, compilerOptions);
   return () => {
-    const result = compiler.compileDefinitionString(ts, compilerOptions);
+    const result = compiler.compileHandle(builder, fileName);
     expect(beautify(result)).toMatchSnapshot();
     if (expectFlowValid) expect(result).toBeValidFlowTypeDeclarations();
     else expect(result).not.toBeValidFlowTypeDeclarations();

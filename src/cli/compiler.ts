@@ -147,6 +147,8 @@ class ProgramsBuilder {
   /** Map from source filenames to which builder they're found in. */
   fileIndex: Map<string, number> = new Map();
 
+  built: void | Map<string, ts.Program> = undefined;
+
   add(sourceText: string, options: Options) {
     let i, builder;
     for (i = 0; i < this.builders.length; i++) {
@@ -155,8 +157,10 @@ class ProgramsBuilder {
         break;
       }
     }
-    if (i === this.builders.length)
-      builder = this.builders.push([options, new ProgramBuilder(options)]);
+    if (i === this.builders.length) {
+      builder = new ProgramBuilder(options);
+      this.builders.push([options, builder]);
+    }
 
     const fileName = builder.add(sourceText);
     this.fileIndex.set(fileName, i);
@@ -164,14 +168,17 @@ class ProgramsBuilder {
   }
 
   build() {
-    const programs = this.builders.map(([_, builder]) => builder.build());
-    return new Map(
-      // @ts-expect-error iterating an iterator
-      [...this.fileIndex.entries()].map(([fileName, i]) => [
-        fileName,
-        programs[i],
-      ]),
-    );
+    if (!this.built) {
+      const programs = this.builders.map(([_, builder]) => builder.build());
+      this.built = new Map(
+        // @ts-expect-error iterating an iterator
+        [...this.fileIndex.entries()].map(([fileName, i]) => [
+          fileName,
+          programs[i],
+        ]),
+      );
+    }
+    return this.built;
   }
 }
 
@@ -180,6 +187,8 @@ class ProgramsBuilder {
  */
 export default {
   reset,
+
+  ProgramsBuilder,
 
   compile: compile.withEnv({}),
 
@@ -193,6 +202,22 @@ export default {
 
   compileTest: (path: string, target: string): void => {
     tsc.compile(path, "--module commonjs -t ES6 --out " + target);
+  },
+
+  compileHandle: (builder: ProgramsBuilder, fileName: string): string => {
+    const built = builder.build();
+    const program = built.get(fileName);
+    if (!program) return "";
+
+    reset(builder.builders[builder.fileIndex.get(fileName)][0]);
+    checker.current = program.getTypeChecker();
+    const sourceFile = program.getSourceFile(fileName);
+    if (!sourceFile) return "";
+
+    logger.setSourceFile(sourceFile);
+
+    const result = compile.withEnv({})(sourceFile);
+    return result;
   },
 
   compileDefinitionString: (string: string, options?: Options): string => {
