@@ -1,20 +1,22 @@
 import { compiler, beautify } from "..";
 import "../test-matchers";
 
+/* eslint jest/expect-expect: ["error", { "assertFunctionNames": ["expect", "check"] }] */
+const check = (ts, options?, expectFlowValid?) => {
+  const result = compiler.compileDefinitionString(ts, options);
+  expect(beautify(result)).toMatchSnapshot();
+  if (expectFlowValid ?? true) expect(result).toBeValidFlowTypeDeclarations();
+  else expect(result).not.toBeValidFlowTypeDeclarations();
+};
+
 it("should handle single interface", () => {
   const ts = `
 interface User {
   firstName: string
 }
 `;
-  const result = compiler.compileDefinitionString(ts);
-  expect(beautify(result)).toMatchSnapshot();
-  expect(result).toBeValidFlowTypeDeclarations();
-  const result2 = compiler.compileDefinitionString(ts, {
-    interfaceRecords: true,
-  });
-  expect(beautify(result2)).toMatchSnapshot();
-  expect(result2).toBeValidFlowTypeDeclarations();
+  check(ts);
+  check(ts, { interfaceRecords: true });
 });
 
 it("should handle interface inheritance", () => {
@@ -26,21 +28,9 @@ interface SpecialUser extends User {
   nice: number
 }
 `;
-  const result = compiler.compileDefinitionString(ts);
-  expect(beautify(result)).toMatchSnapshot();
-  expect(result).toBeValidFlowTypeDeclarations();
-  const result2 = compiler.compileDefinitionString(ts, {
-    interfaceRecords: true,
-  });
-  expect(beautify(result2)).toMatchSnapshot();
-  expect(result2).toBeValidFlowTypeDeclarations();
-
-  const result3 = compiler.compileDefinitionString(ts, {
-    interfaceRecords: true,
-    inexact: false,
-  });
-  expect(beautify(result3)).toMatchSnapshot();
-  expect(result3).toBeValidFlowTypeDeclarations();
+  check(ts);
+  check(ts, { interfaceRecords: true });
+  check(ts, { interfaceRecords: true, inexact: false });
 });
 
 it("should handle interface merging", () => {
@@ -55,14 +45,8 @@ interface User {
   username: string
 }
 `;
-  const result = compiler.compileDefinitionString(ts);
-  expect(beautify(result)).toMatchSnapshot();
-  expect(result).toBeValidFlowTypeDeclarations();
-  const result2 = compiler.compileDefinitionString(ts, {
-    interfaceRecords: true,
-  });
-  expect(beautify(result2)).toMatchSnapshot();
-  expect(result2).toBeValidFlowTypeDeclarations();
+  check(ts);
+  check(ts, { interfaceRecords: true });
 });
 
 it("should handle all properties", () => {
@@ -74,9 +58,7 @@ interface Props {
   [key: string]: string;
 }
 `;
-  const result = compiler.compileDefinitionString(ts);
-  expect(beautify(result)).toMatchSnapshot();
-  expect(result).not.toBeValidFlowTypeDeclarations(); // unsupported-syntax
+  check(ts, undefined, false); // unsupported-syntax
 });
 
 it("should support readonly modifier", () => {
@@ -86,9 +68,7 @@ interface Helper {
   readonly callback(): void;
 }
 `;
-  const result = compiler.compileDefinitionString(ts);
-  expect(beautify(result)).toMatchSnapshot();
-  expect(result).toBeValidFlowTypeDeclarations();
+  check(ts);
 });
 
 it("should support call signature", () => {
@@ -100,9 +80,7 @@ it("should support call signature", () => {
     new (): ObjectSchema<{}>;
   }
 `;
-  const result = compiler.compileDefinitionString(ts);
-  expect(beautify(result)).toMatchSnapshot();
-  expect(result).toBeValidFlowTypeDeclarations();
+  check(ts);
 });
 
 it("should remove this in call signature", () => {
@@ -119,9 +97,7 @@ interface C<This, Datum> {
   (this: This, d: Datum, ...args: any[]);
 }
 `;
-  const result = compiler.compileDefinitionString(ts);
-  expect(beautify(result)).toMatchSnapshot();
-  expect(result).toBeValidFlowTypeDeclarations();
+  check(ts);
 });
 
 it("should remove generic defaults in call signature", () => {
@@ -131,9 +107,7 @@ interface AbstractLevelDOWNConstructor {
     <K = any, V = any>(location: string): AbstractLevelDOWN<K, V>;
 }  
 `;
-  const result = compiler.compileDefinitionString(ts);
-  expect(beautify(result)).toMatchSnapshot();
-  expect(result).toBeValidFlowTypeDeclarations();
+  check(ts);
 });
 
 it("should support omitting generic defaults in types, classes, interfaces", () => {
@@ -151,9 +125,7 @@ declare var d: Foo<any>
 declare var e: Bar<any>
 declare var f: Baz<any>
 `;
-  const result = compiler.compileDefinitionString(ts);
-  expect(beautify(result)).toMatchSnapshot();
-  expect(result).toBeValidFlowTypeDeclarations();
+  check(ts);
 });
 
 it("should support optional methods", () => {
@@ -163,9 +135,7 @@ interface Example<State> {
   optional?<R>(value: any, state: State): false;
 }
 `;
-  const result = compiler.compileDefinitionString(ts);
-  expect(beautify(result)).toMatchSnapshot();
-  expect(result).toBeValidFlowTypeDeclarations();
+  check(ts);
 });
 
 it("should handle toString property name", () => {
@@ -174,9 +144,7 @@ interface A {
   toString(): string;
 }
 `;
-  const result = compiler.compileDefinitionString(ts);
-  expect(beautify(result)).toMatchSnapshot();
-  expect(result).toBeValidFlowTypeDeclarations();
+  check(ts);
 });
 
 it("should handle untyped object binding pattern", () => {
@@ -187,9 +155,7 @@ interface ObjectBinding {
   ({ a, b }): void;
 }
 `;
-  const result = compiler.compileDefinitionString(ts);
-  expect(beautify(result)).toMatchSnapshot();
-  expect(result).toBeValidFlowTypeDeclarations();
+  check(ts);
 });
 
 it("should handle untyped array binding pattern", () => {
@@ -200,9 +166,7 @@ interface ArrayBinding {
   ([ a, b ]): void;
 }
 `;
-  const result = compiler.compileDefinitionString(ts);
-  expect(beautify(result)).toMatchSnapshot();
-  expect(result).toBeValidFlowTypeDeclarations();
+  check(ts);
 });
 
 it("should handle typed object binding pattern", () => {
@@ -213,9 +177,7 @@ interface ObjectBinding {
   ({ a, b }: { a: string, b: number }): void;
 }
 `;
-  const result = compiler.compileDefinitionString(ts);
-  expect(beautify(result)).toMatchSnapshot();
-  expect(result).toBeValidFlowTypeDeclarations();
+  check(ts);
 });
 
 it("should handle typed array binding pattern", () => {
@@ -226,9 +188,7 @@ interface ArrayBinding {
   ([ a, b ]: [string, number]): void;
 }
 `;
-  const result = compiler.compileDefinitionString(ts);
-  expect(beautify(result)).toMatchSnapshot();
-  expect(result).toBeValidFlowTypeDeclarations();
+  check(ts);
 });
 
 it("should handle mutli-extends pattern", () => {
@@ -244,7 +204,5 @@ interface Square extends Shape, PenStroke {
   sideLength: number;
 }
 `;
-  const result = compiler.compileDefinitionString(ts);
-  expect(beautify(result)).toMatchSnapshot();
-  expect(result).toBeValidFlowTypeDeclarations();
+  check(ts);
 });
