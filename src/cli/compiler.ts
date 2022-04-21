@@ -150,14 +150,14 @@ export default {
 
     const elapsed = marks[marks.length - 1][1] - marks[0][1];
     total += elapsed;
-    console.log(
-      `compileDefinitionString ${elapsed.toFixed()} total ${total.toFixed()}\n  ` +
-        marks
-          .map(([name, t], i) =>
-            i === 0 ? "" : `${name} ${(t - marks[i - 1][1]).toFixed()}`,
-          )
-          .join(" "),
-    );
+    // console.log(
+    //   `compileDefinitionString ${elapsed.toFixed()} total ${total.toFixed()}\n  ` +
+    //     marks
+    //       .map(([name, t], i) =>
+    //         i === 0 ? "" : `${name} ${(t - marks[i - 1][1]).toFixed()}`,
+    //       )
+    //       .join(" "),
+    // );
 
     return result;
   },
