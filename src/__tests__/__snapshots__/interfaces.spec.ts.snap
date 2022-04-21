@@ -78,17 +78,17 @@ declare type Square = {
 "
 `;
 
-exports[`should handle single interface 1`] = `
+exports[`should handle single interface [] 1`] = `
 "declare interface User {
   firstName: string;
 }
 "
 `;
 
-exports[`should handle single interface 2`] = `
-"declare type User = {
-  firstName: string,
-};
+exports[`should handle single interface [{"interfaceRecords":true}] 1`] = `
+"declare interface User {
+  firstName: string;
+}
 "
 `;
 

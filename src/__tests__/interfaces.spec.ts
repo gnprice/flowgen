@@ -10,15 +10,24 @@ const check = (ts, options?) => {
   else expect(result).not.toBeValidFlowTypeDeclarations();
 };
 
-it("should handle single interface", () => {
-  const ts = `
+/* eslint-disable jest/valid-title */
+function testCompile(description: string, ts, options = [{}]) {
+  describe(description, () => {
+    for (const opts of options) {
+      test(JSON.stringify(opts), () => check(ts, opts));
+    }
+  });
+}
+
+testCompile(
+  "should handle single interface",
+  `
 interface User {
   firstName: string
 }
-`;
-  check(ts);
-  check(ts, { interfaceRecords: true });
-});
+`,
+  [{}, { interfaceRecords: true }],
+);
 
 it("should handle interface inheritance", () => {
   const ts = `
