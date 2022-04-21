@@ -79,6 +79,8 @@ const transformFile = (
 /** Return a string that's almost surely different every time. */
 const randString = (): string => (Math.random() * 2 ** 54).toString(36);
 
+let total = 0;
+
 /**
  * Compiles typescript files
  */
@@ -100,6 +102,8 @@ export default {
   },
 
   compileDefinitionString: (string: string, options?: Options): string => {
+    const start = performance.now();
+
     reset(options);
 
     const definitionPath = `string-${randString()}.ts`;
@@ -126,7 +130,19 @@ export default {
 
     logger.setSourceFile(sourceFile);
 
-    return compile.withEnv({})(sourceFile);
+    const result = compile.withEnv({})(sourceFile);
+
+    const end = performance.now();
+    const elapsed = end - start;
+    total += elapsed;
+    console.log(
+      "compileDefinitionString",
+      elapsed.toFixed(),
+      "total",
+      total.toFixed(),
+    );
+
+    return result;
   },
 
   compileDefinitionFile: (
