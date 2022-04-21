@@ -22,6 +22,7 @@ import {
 } from "../parse/transformers";
 import { recursiveWalkTree } from "../parse";
 import { printFlowGenHelper } from "../printers/node";
+import lodash from "lodash";
 
 const compile = withEnv<any, [SourceFile], string>(
   (env: any, sourceFile: SourceFile): string => {
@@ -98,6 +99,81 @@ const sharedCompilerHost = (() => {
   };
   return compilerHost;
 })();
+
+class ProgramBuilder {
+  compilerOptions: Options;
+  files: Map<string, string> = new Map();
+
+  constructor(options: Options) {
+    this.compilerOptions = options;
+  }
+
+  add(sourceText: string): string {
+    const definitionPath = `string-${randString()}.ts`;
+    this.files.set(definitionPath, sourceText);
+    return definitionPath;
+  }
+
+  build() {
+    const compilerHost = createCompilerHost({}, true);
+    const oldSourceFile = compilerHost.getSourceFile;
+    compilerHost.getSourceFile = (file, languageVersion) => {
+      const sourceText = this.files.get(file);
+      if (sourceText !== undefined) {
+        return transformFile(
+          "/dev/null",
+          sourceText,
+          languageVersion,
+          this.compilerOptions,
+        );
+      }
+      return oldSourceFile(file, languageVersion);
+    };
+
+    return createProgram(
+      // @ts-expect-error iterating an iterator
+      [...this.files.keys()],
+      this.compilerOptions,
+      compilerHost,
+    );
+  }
+}
+
+class ProgramsBuilder {
+  // The number of different options objects should be small, so just keep
+  // an array to search through.
+  builders: [Options, ProgramBuilder][] = [];
+
+  /** Map from source filenames to which builder they're found in. */
+  fileIndex: Map<string, number> = new Map();
+
+  add(sourceText: string, options: Options) {
+    let i, builder;
+    for (i = 0; i < this.builders.length; i++) {
+      if (lodash.isEqual(options, this.builders[i][0])) {
+        builder = this.builders[i][1];
+        break;
+      }
+    }
+    if (i === this.builders.length)
+      builder = this.builders.push([options, new ProgramBuilder(options)]);
+
+    const fileName = builder.add(sourceText);
+    this.fileIndex.set(fileName, i);
+    return fileName;
+  }
+
+  build() {
+    const programs = this.builders.map(([_, builder]) => builder.build());
+    return new Map(
+      // @ts-expect-error iterating an iterator
+      [...this.fileIndex.entries()].map(([fileName, i]) => [
+        fileName,
+        programs[i],
+      ]),
+    );
+  }
+}
 
 /**
  * Compiles typescript files
