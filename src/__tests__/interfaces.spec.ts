@@ -2,10 +2,11 @@ import { compiler, beautify } from "..";
 import "../test-matchers";
 
 /* eslint jest/expect-expect: ["error", { "assertFunctionNames": ["expect", "check"] }] */
-const check = (ts, options?, expectFlowValid?) => {
-  const result = compiler.compileDefinitionString(ts, options);
+const check = (ts, options?) => {
+  const { expectFlowValid = true, ...compilerOptions } = options ?? {};
+  const result = compiler.compileDefinitionString(ts, compilerOptions);
   expect(beautify(result)).toMatchSnapshot();
-  if (expectFlowValid ?? true) expect(result).toBeValidFlowTypeDeclarations();
+  if (expectFlowValid) expect(result).toBeValidFlowTypeDeclarations();
   else expect(result).not.toBeValidFlowTypeDeclarations();
 };
 
@@ -58,7 +59,7 @@ interface Props {
   [key: string]: string;
 }
 `;
-  check(ts, undefined, false); // unsupported-syntax
+  check(ts, { expectFlowValid: false }); // unsupported-syntax
 });
 
 it("should support readonly modifier", () => {
