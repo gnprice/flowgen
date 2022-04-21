@@ -124,12 +124,11 @@ export default {
     const mark = (name: string) => marks.push([name, performance.now()]);
 
     reset(options);
-    mark("reset-options");
 
     const definitionPath = `string-${randString()}.ts`;
 
     definitionInputs.set(definitionPath, { string, options });
-    mark("set");
+    mark("setup");
 
     const program = createProgram(
       [definitionPath],
@@ -141,12 +140,10 @@ export default {
     checker.current = program.getTypeChecker();
     mark("getTypeChecker");
     const sourceFile = program.getSourceFile(definitionPath);
-    mark("getSourceFile");
 
     if (!sourceFile) return "";
 
     logger.setSourceFile(sourceFile);
-    mark("logger.setSourceFile");
 
     const result = compile.withEnv({})(sourceFile);
     mark("compile");
