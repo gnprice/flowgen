@@ -102,9 +102,11 @@ export default {
   },
 
   compileDefinitionString: (string: string, options?: Options): string => {
-    const start = performance.now();
+    const marks: [string, number][] = [["start", performance.now()]];
+    const mark = (name: string) => marks.push([name, performance.now()]);
 
     reset(options);
+    mark("reset-options");
 
     const definitionPath = `string-${randString()}.ts`;
 
@@ -116,30 +118,37 @@ export default {
       }
       return oldSourceFile(file, languageVersion);
     };
+    mark("createCompilerHost");
 
     const program = createProgram(
       [definitionPath],
       compilerOptions,
       compilerHost,
     );
+    mark("createProgram");
 
     checker.current = program.getTypeChecker();
+    mark("getTypeChecker");
     const sourceFile = program.getSourceFile(definitionPath);
+    mark("getSourceFile");
 
     if (!sourceFile) return "";
 
     logger.setSourceFile(sourceFile);
+    mark("logger.setSourceFile");
 
     const result = compile.withEnv({})(sourceFile);
+    mark("compile");
 
-    const end = performance.now();
-    const elapsed = end - start;
+    const elapsed = marks[marks.length - 1][1] - marks[0][1];
     total += elapsed;
     console.log(
-      "compileDefinitionString",
-      elapsed.toFixed(),
-      "total",
-      total.toFixed(),
+      `compileDefinitionString ${elapsed.toFixed()} total ${total.toFixed()}\n  ` +
+        marks
+          .map(([name, t], i) =>
+            i === 0 ? "" : `${name} ${(t - marks[i - 1][1]).toFixed()}`,
+          )
+          .join(" "),
     );
 
     return result;
