@@ -12,11 +12,16 @@ const check = (ts, options?) => {
 
 /* eslint-disable jest/valid-title */
 function testCompile(description: string, ts, options = [{}]) {
-  describe(description, () => {
-    for (const opts of options) {
-      test(JSON.stringify(opts), () => check(ts, opts));
-    }
-  });
+  if (options.length > 1) {
+    describe(description, () => {
+      for (const opts of options) {
+        test(JSON.stringify(opts), () => check(ts, opts));
+      }
+    });
+  } else {
+    const opts = options[0];
+    test(`${description} ${JSON.stringify(opts)}`, () => check(ts, opts));
+  }
 }
 
 testCompile(
