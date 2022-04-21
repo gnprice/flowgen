@@ -205,18 +205,36 @@ export default {
   },
 
   compileHandle: (builder: ProgramsBuilder, fileName: string): string => {
+    const marks: [string, number][] = [["start", performance.now()]];
+    const mark = (name: string) => marks.push([name, performance.now()]);
+
     const built = builder.build();
     const program = built.get(fileName);
     if (!program) return "";
 
     reset(builder.builders[builder.fileIndex.get(fileName)][0]);
+    mark("setup");
     checker.current = program.getTypeChecker();
+    mark("getTypeChecker");
     const sourceFile = program.getSourceFile(fileName);
     if (!sourceFile) return "";
 
     logger.setSourceFile(sourceFile);
 
     const result = compile.withEnv({})(sourceFile);
+    mark("compile");
+
+    const elapsed = marks[marks.length - 1][1] - marks[0][1];
+    total += elapsed;
+    console.log(
+      `compileHandle ${elapsed.toFixed()} total ${total.toFixed()}\n  ` +
+        marks
+          .map(([name, t], i) =>
+            i === 0 ? "" : `${name} ${(t - marks[i - 1][1]).toFixed()}`,
+          )
+          .join(" "),
+    );
+
     return result;
   },
 
