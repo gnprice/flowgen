@@ -20,7 +20,10 @@ function testCompile(description: string, ts, options = [{}]) {
     });
   } else {
     const opts = options[0];
-    test(`${description} ${JSON.stringify(opts)}`, () => check(ts, opts));
+    const optionsDescription = Object.keys(opts).length
+      ? " " + JSON.stringify(opts)
+      : "";
+    test(`${description}${optionsDescription}`, () => check(ts, opts));
   }
 }
 

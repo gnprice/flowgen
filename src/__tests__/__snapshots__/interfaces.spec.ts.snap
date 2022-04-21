@@ -63,7 +63,7 @@ exports[`should handle interface merging {} 1`] = `
 "
 `;
 
-exports[`should handle mutli-extends pattern {} 1`] = `
+exports[`should handle mutli-extends pattern 1`] = `
 "declare interface Shape {
   color: string;
 }
@@ -92,14 +92,14 @@ exports[`should handle single interface {} 1`] = `
 "
 `;
 
-exports[`should handle toString property name {} 1`] = `
+exports[`should handle toString property name 1`] = `
 "declare interface A {
   toString(): string;
 }
 "
 `;
 
-exports[`should handle typed array binding pattern {} 1`] = `
+exports[`should handle typed array binding pattern 1`] = `
 "declare interface ArrayBinding {
   (): void;
   (x: []): void;
@@ -108,7 +108,7 @@ exports[`should handle typed array binding pattern {} 1`] = `
 "
 `;
 
-exports[`should handle typed object binding pattern {} 1`] = `
+exports[`should handle typed object binding pattern 1`] = `
 "declare interface ObjectBinding {
   (): void;
   (x: any): void;
@@ -121,7 +121,7 @@ exports[`should handle typed object binding pattern {} 1`] = `
 "
 `;
 
-exports[`should handle untyped array binding pattern {} 1`] = `
+exports[`should handle untyped array binding pattern 1`] = `
 "declare interface ArrayBinding {
   (): void;
   (x: any): void;
@@ -130,7 +130,7 @@ exports[`should handle untyped array binding pattern {} 1`] = `
 "
 `;
 
-exports[`should handle untyped object binding pattern {} 1`] = `
+exports[`should handle untyped object binding pattern 1`] = `
 "declare interface ObjectBinding {
   (): void;
   (x: {}): void;
@@ -139,7 +139,7 @@ exports[`should handle untyped object binding pattern {} 1`] = `
 "
 `;
 
-exports[`should remove generic defaults in call signature {} 1`] = `
+exports[`should remove generic defaults in call signature 1`] = `
 "declare interface AbstractLevelDOWN<K, V> {}
 declare interface AbstractLevelDOWNConstructor {
   <K, V>(location: string): AbstractLevelDOWN<K, V>;
@@ -147,7 +147,7 @@ declare interface AbstractLevelDOWNConstructor {
 "
 `;
 
-exports[`should remove this in call signature {} 1`] = `
+exports[`should remove this in call signature 1`] = `
 "declare interface Arc<This, Datum> {
   (d: Datum, ...args: any[]): string | null;
 }
@@ -160,7 +160,7 @@ declare interface C<This, Datum> {
 "
 `;
 
-exports[`should support call signature {} 1`] = `
+exports[`should support call signature 1`] = `
 "declare interface ObjectSchema<T> {}
 declare interface ObjectSchemaDefinition<T> {}
 declare interface ObjectSchemaConstructor {
@@ -172,7 +172,7 @@ declare interface ObjectSchemaConstructor {
 "
 `;
 
-exports[`should support omitting generic defaults in types, classes, interfaces {} 1`] = `
+exports[`should support omitting generic defaults in types, classes, interfaces 1`] = `
 "declare interface Foo<T = Symbol, U = number> {}
 declare type FooBar = { ... } & Foo<>;
 declare type Bar<T = number, U = string> = { ... };
@@ -186,7 +186,7 @@ declare var f: Baz<any>;
 "
 `;
 
-exports[`should support optional methods {} 1`] = `
+exports[`should support optional methods 1`] = `
 "declare interface Example<State> {
   required<R>(value: any, state: State): true;
   optional?: <R>(value: any, state: State) => false;
@@ -194,7 +194,7 @@ exports[`should support optional methods {} 1`] = `
 "
 `;
 
-exports[`should support readonly modifier {} 1`] = `
+exports[`should support readonly modifier 1`] = `
 "declare interface Helper {
   +name: string;
   +callback: () => void;
