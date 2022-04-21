@@ -1,21 +1,23 @@
 import { compiler, beautify } from "..";
 import "../test-matchers";
 
-/* eslint jest/expect-expect: ["error", { "assertFunctionNames": ["expect", "check"] }] */
-const check = (ts, options?) => {
+/* eslint jest/expect-expect: ["error", { "assertFunctionNames": ["expect", "registerTest"] }] */
+function registerTest(ts: string, options) {
   const { expectFlowValid = true, ...compilerOptions } = options ?? {};
-  const result = compiler.compileDefinitionString(ts, compilerOptions);
-  expect(beautify(result)).toMatchSnapshot();
-  if (expectFlowValid) expect(result).toBeValidFlowTypeDeclarations();
-  else expect(result).not.toBeValidFlowTypeDeclarations();
-};
+  return () => {
+    const result = compiler.compileDefinitionString(ts, compilerOptions);
+    expect(beautify(result)).toMatchSnapshot();
+    if (expectFlowValid) expect(result).toBeValidFlowTypeDeclarations();
+    else expect(result).not.toBeValidFlowTypeDeclarations();
+  };
+}
 
 /* eslint-disable jest/valid-title */
 function testCompile(description: string, ts, options = [{}]) {
   if (options.length > 1) {
     describe(description, () => {
       for (const opts of options) {
-        test(JSON.stringify(opts), () => check(ts, opts));
+        test(JSON.stringify(opts), registerTest(ts, opts));
       }
     });
   } else {
@@ -23,7 +25,7 @@ function testCompile(description: string, ts, options = [{}]) {
     const optionsDescription = Object.keys(opts).length
       ? " " + JSON.stringify(opts)
       : "";
-    test(`${description}${optionsDescription}`, () => check(ts, opts));
+    test(`${description}${optionsDescription}`, registerTest(ts, opts));
   }
 }
 
