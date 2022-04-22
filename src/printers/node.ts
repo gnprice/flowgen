@@ -214,8 +214,8 @@ export function getFullyQualifiedName(
 
   if (checks) {
     let isExternalSymbol = false;
-    const leftMost = getLeftMostEntityName(type);
-    if (leftMost) {
+    if (ts.isEntityName(type)) {
+      const leftMost = getLeftMostEntityName(type);
       //$todo Flow has problems when switching variables instead of literals
       const leftMostSymbol = typeChecker.getSymbolAtLocation(leftMost);
       const decl =
@@ -264,15 +264,13 @@ export function getTypeofFullyQualifiedName(
 
   let isExternalSymbol = false;
   const leftMost = getLeftMostEntityName(type);
-  if (leftMost) {
-    //$todo Flow has problems when switching variables instead of literals
-    const leftMostSymbol = typeChecker.getSymbolAtLocation(leftMost);
-    const decl = leftMostSymbol ? leftMostSymbol.declarations[0] : null;
-    isExternalSymbol =
-      decl &&
-      (decl.kind === ts.SyntaxKind.NamespaceImport ||
-        decl.kind === ts.SyntaxKind.NamedImports);
-  }
+  //$todo Flow has problems when switching variables instead of literals
+  const leftMostSymbol = typeChecker.getSymbolAtLocation(leftMost);
+  const decl = leftMostSymbol ? leftMostSymbol.declarations[0] : null;
+  isExternalSymbol =
+    decl &&
+    (decl.kind === ts.SyntaxKind.NamespaceImport ||
+      decl.kind === ts.SyntaxKind.NamedImports);
   if (!symbol || typeChecker.isUnknownSymbol(symbol) || isExternalSymbol) {
     return printEntityName(type);
   }

@@ -75,7 +75,7 @@ export function renames(
     setImportedName(decl.name.escapedText, decl.name, symbol, decl);
   } else if (type.kind === ts.SyntaxKind.TypeReference) {
     const leftMost = getLeftMostEntityName(type.typeName);
-    if (leftMost && checker.current) {
+    if (checker.current) {
       const leftMostSymbol = checker.current.getSymbolAtLocation(leftMost);
       const isGlobal = leftMostSymbol?.parent?.escapedName === "__global";
       if (isGlobal) {
@@ -96,16 +96,11 @@ export function renames(
   return false;
 }
 
-export function getLeftMostEntityName(type: ts.Node): ts.Identifier | void {
-  if (ts.isQualifiedName(type)) {
-    return type.left.kind === ts.SyntaxKind.Identifier
-      ? type.left
-      : getLeftMostEntityName(type.left);
-  } else if (ts.isIdentifier(type)) {
-    return type;
-  } else {
-    return undefined;
+export function getLeftMostEntityName(type: ts.EntityName): ts.Identifier {
+  while (ts.isQualifiedName(type)) {
+    type = type.left;
   }
+  return type;
 }
 
 function compareIdentifier(a: ts.Identifier, b: ts.Identifier): boolean {
