@@ -156,7 +156,6 @@ function printSymbolWithoutParent(
 export function getFullyQualifiedPropertyAccessExpression(
   symbol: ts.Symbol | undefined,
   type: ts.PropertyAccessExpression | ts.Identifier,
-  delimiter = "$",
 ): string {
   const typeChecker = checker.current;
   if (!typeChecker) {
@@ -187,8 +186,9 @@ export function getFullyQualifiedPropertyAccessExpression(
     return typeChecker.symbolToString(symbol);
   }
 
+  const delimiter = "$";
   return (
-    getFullyQualifiedPropertyAccessExpression(symbol.parent, type, delimiter) +
+    getFullyQualifiedPropertyAccessExpression(symbol.parent, type) +
     delimiter +
     typeChecker.symbolToString(symbol)
   );
@@ -246,7 +246,7 @@ export function getFullyQualifiedName(
   }
 
   if (symbol.valueDeclaration?.kind === ts.SyntaxKind.EnumMember)
-    delimiter = ".";
+    delimiter = "."; // TODO should this really be passed recursively?
   return (
     getFullyQualifiedName(symbol.parent, type, true, delimiter) +
     delimiter +
@@ -257,7 +257,6 @@ export function getFullyQualifiedName(
 export function getTypeofFullyQualifiedName(
   symbol: ts.Symbol | undefined,
   type: ts.EntityName,
-  delimiter = ".",
 ): string {
   const typeChecker = checker.current;
   if (!typeChecker) {
@@ -287,8 +286,10 @@ export function getTypeofFullyQualifiedName(
     return typeChecker.symbolToString(symbol);
   }
 
+  let delimiter;
   let parentName;
   if (symbol.parent.escapedName === "__type") {
+    delimiter = ".";
     parentName = getTypeofFullyQualifiedName(
       // @ts-expect-error todo(flow->ts)
       symbol.parent.declarations[0].parent.symbol,
@@ -297,7 +298,7 @@ export function getTypeofFullyQualifiedName(
   } else {
     delimiter =
       symbol.valueDeclaration?.kind === ts.SyntaxKind.EnumMember ? "." : "$";
-    parentName = getTypeofFullyQualifiedName(symbol.parent, type, delimiter);
+    parentName = getTypeofFullyQualifiedName(symbol.parent, type);
   }
   return parentName + delimiter + typeChecker.symbolToString(symbol);
 }
