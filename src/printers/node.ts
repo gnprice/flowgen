@@ -254,18 +254,7 @@ export function getFullyQualifiedName(
   ) {
     return typeChecker.symbolToString(symbol);
   }
-  // if (
-  //   (symbol.flags & ts.SymbolFlags.ValueModule) ===
-  //   ts.SymbolFlags.ValueModule
-  // ) {
-  //   return typeChecker.symbolToString(
-  //     symbol,
-  //     undefined,
-  //     /*meaning*/ undefined,
-  //     ts.SymbolFormatFlags.DoNotIncludeSymbolChain |
-  //       ts.SymbolFormatFlags.AllowAnyNodeKind,
-  //   );
-  // }
+
   if (symbol.valueDeclaration?.kind === ts.SyntaxKind.EnumMember)
     delimiter = ".";
   return (
