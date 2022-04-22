@@ -78,7 +78,7 @@ type PrintNode =
   | ts.SetAccessorDeclaration
   | ts.InferTypeNode;
 
-export function printEntityName(type: ts.Node): string {
+function printEntityName(type: ts.Node): string {
   if (ts.isQualifiedName(type)) {
     return (
       printers.relationships.namespace(printEntityName(type.left)) +
@@ -91,7 +91,7 @@ export function printEntityName(type: ts.Node): string {
   }
 }
 
-export function printPropertyAccessExpression(
+function printPropertyAccessExpression(
   type: ts.PropertyAccessExpression | ts.Identifier | ts.PrivateIdentifier,
 ): string {
   if (type.kind === ts.SyntaxKind.PropertyAccessExpression) {
@@ -111,7 +111,7 @@ export function printPropertyAccessExpression(
   }
 }
 
-export function getLeftMostPropertyAccessExpression(
+function getLeftMostPropertyAccessExpression(
   type: ts.PropertyAccessExpression | ts.Identifier,
 ) {
   if (type.kind === ts.SyntaxKind.PropertyAccessExpression) {
