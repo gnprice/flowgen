@@ -155,31 +155,31 @@ export function getFullyQualifiedPropertyAccessExpression(
   if (!symbol || typeChecker.isUnknownSymbol(symbol) || isExternalSymbol) {
     return printPropertyAccessExpression(type);
   }
+
+  if (!symbol.parent) {
+    return typeChecker.symbolToString(
+      symbol,
+      undefined,
+      /*meaning*/ undefined,
+      //$todo Some problem about TypeScript enums conversion and bitwise operators
+      ts.SymbolFormatFlags.DoNotIncludeSymbolChain |
+        ts.SymbolFormatFlags.AllowAnyNodeKind,
+    );
+  }
+
   if (
-    symbol.parent?.valueDeclaration?.kind === ts.SyntaxKind.SourceFile ||
-    (symbol.parent?.valueDeclaration?.kind ===
-      ts.SyntaxKind.ModuleDeclaration &&
-      (symbol.parent?.valueDeclaration.flags & ts.NodeFlags.Namespace) === 0)
+    symbol.parent.valueDeclaration?.kind === ts.SyntaxKind.SourceFile ||
+    (symbol.parent.valueDeclaration?.kind === ts.SyntaxKind.ModuleDeclaration &&
+      (symbol.parent.valueDeclaration.flags & ts.NodeFlags.Namespace) === 0)
   ) {
     return typeChecker.symbolToString(symbol);
   }
 
-  return symbol.parent
-    ? getFullyQualifiedPropertyAccessExpression(
-        symbol.parent,
-        type,
-        delimiter,
-      ) +
-        delimiter +
-        typeChecker.symbolToString(symbol)
-    : typeChecker.symbolToString(
-        symbol,
-        undefined,
-        /*meaning*/ undefined,
-        //$todo Some problem about TypeScript enums conversion and bitwise operators
-        ts.SymbolFormatFlags.DoNotIncludeSymbolChain |
-          ts.SymbolFormatFlags.AllowAnyNodeKind,
-      );
+  return (
+    getFullyQualifiedPropertyAccessExpression(symbol.parent, type, delimiter) +
+    delimiter +
+    typeChecker.symbolToString(symbol)
+  );
 }
 
 export function getFullyQualifiedName(
