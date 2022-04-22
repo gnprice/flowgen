@@ -212,7 +212,7 @@ export function getFullyQualifiedName(
     return printEntityName(type);
   }
 
-  if (checks) {
+  if (true) {
     let isExternalSymbol = false;
     if (ts.isEntityName(type)) {
       const leftMost = getLeftMostEntityName(type);
