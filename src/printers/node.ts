@@ -135,62 +135,62 @@ export function getFullyQualifiedPropertyAccessExpression(
   type: ts.PropertyAccessExpression | ts.Identifier,
   delimiter = "$",
 ): string {
-  if (checker.current) {
-    const typeChecker = checker.current;
-    let isExternalSymbol = false;
-    const leftMost = getLeftMostPropertyAccessExpression(type);
-    if (leftMost) {
-      //$todo Flow has problems when switching variables instead of literals
-      const leftMostSymbol = typeChecker.getSymbolAtLocation(leftMost);
-      if (leftMostSymbol) {
-        const decl = leftMostSymbol.declarations[0];
-        isExternalSymbol =
-          decl.kind === ts.SyntaxKind.NamespaceImport ||
-          decl.kind === ts.SyntaxKind.NamedImports;
-      }
-    }
-    if (!symbol || typeChecker.isUnknownSymbol(symbol) || isExternalSymbol) {
-      return printPropertyAccessExpression(type);
-    }
-    if (
-      symbol.parent?.valueDeclaration?.kind === ts.SyntaxKind.SourceFile ||
-      (symbol.parent?.valueDeclaration?.kind ===
-        ts.SyntaxKind.ModuleDeclaration &&
-        (symbol.parent?.valueDeclaration.flags & ts.NodeFlags.Namespace) === 0)
-    ) {
-      return typeChecker.symbolToString(symbol);
-    }
-    // if (
-    //   (symbol.flags & ts.SymbolFlags.ValueModule) ===
-    //   ts.SymbolFlags.ValueModule
-    // ) {
-    //   return typeChecker.symbolToString(
-    //     symbol,
-    //     undefined,
-    //     /*meaning*/ undefined,
-    //     ts.SymbolFormatFlags.DoNotIncludeSymbolChain |
-    //       ts.SymbolFormatFlags.AllowAnyNodeKind,
-    //   );
-    // }
-    return symbol.parent
-      ? getFullyQualifiedPropertyAccessExpression(
-          symbol.parent,
-          type,
-          delimiter,
-        ) +
-          delimiter +
-          typeChecker.symbolToString(symbol)
-      : typeChecker.symbolToString(
-          symbol,
-          undefined,
-          /*meaning*/ undefined,
-          //$todo Some problem about TypeScript enums conversion and bitwise operators
-          ts.SymbolFormatFlags.DoNotIncludeSymbolChain |
-            ts.SymbolFormatFlags.AllowAnyNodeKind,
-        );
-  } else {
+  const typeChecker = checker.current;
+  if (!typeChecker) {
     return printPropertyAccessExpression(type);
   }
+
+  let isExternalSymbol = false;
+  const leftMost = getLeftMostPropertyAccessExpression(type);
+  if (leftMost) {
+    //$todo Flow has problems when switching variables instead of literals
+    const leftMostSymbol = typeChecker.getSymbolAtLocation(leftMost);
+    if (leftMostSymbol) {
+      const decl = leftMostSymbol.declarations[0];
+      isExternalSymbol =
+        decl.kind === ts.SyntaxKind.NamespaceImport ||
+        decl.kind === ts.SyntaxKind.NamedImports;
+    }
+  }
+  if (!symbol || typeChecker.isUnknownSymbol(symbol) || isExternalSymbol) {
+    return printPropertyAccessExpression(type);
+  }
+  if (
+    symbol.parent?.valueDeclaration?.kind === ts.SyntaxKind.SourceFile ||
+    (symbol.parent?.valueDeclaration?.kind ===
+      ts.SyntaxKind.ModuleDeclaration &&
+      (symbol.parent?.valueDeclaration.flags & ts.NodeFlags.Namespace) === 0)
+  ) {
+    return typeChecker.symbolToString(symbol);
+  }
+  // if (
+  //   (symbol.flags & ts.SymbolFlags.ValueModule) ===
+  //   ts.SymbolFlags.ValueModule
+  // ) {
+  //   return typeChecker.symbolToString(
+  //     symbol,
+  //     undefined,
+  //     /*meaning*/ undefined,
+  //     ts.SymbolFormatFlags.DoNotIncludeSymbolChain |
+  //       ts.SymbolFormatFlags.AllowAnyNodeKind,
+  //   );
+  // }
+  return symbol.parent
+    ? getFullyQualifiedPropertyAccessExpression(
+        symbol.parent,
+        type,
+        delimiter,
+      ) +
+        delimiter +
+        typeChecker.symbolToString(symbol)
+    : typeChecker.symbolToString(
+        symbol,
+        undefined,
+        /*meaning*/ undefined,
+        //$todo Some problem about TypeScript enums conversion and bitwise operators
+        ts.SymbolFormatFlags.DoNotIncludeSymbolChain |
+          ts.SymbolFormatFlags.AllowAnyNodeKind,
+      );
 }
 
 export function getFullyQualifiedName(
