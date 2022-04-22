@@ -88,7 +88,7 @@ export function printEntityName(type: ts.Node): string {
       ) + printEntityName(type.right)
     );
   } else if (ts.isIdentifier(type)) {
-    return printers.relationships.namespace(type.text, true);
+    return type.text;
   } else {
     return "";
   }
@@ -107,11 +107,8 @@ export function printPropertyAccessExpression(
       ) + printPropertyAccessExpression(type.name)
     );
   } else if (type.kind === ts.SyntaxKind.Identifier) {
-    return printers.relationships.namespace(
-      // @ts-expect-error todo(flow->ts)
-      printers.identifiers.print(type.text),
-      true,
-    );
+    // @ts-expect-error todo(flow->ts)
+    return printers.identifiers.print(type.text);
   } else {
     return "";
   }
@@ -477,13 +474,9 @@ export const printType = withEnv(
 
       //case SyntaxKind.IdentifierObject:
       //case SyntaxKind.StringLiteralType:
-      case ts.SyntaxKind.Identifier: {
-        return printers.relationships.namespace(
-          // @ts-expect-error todo(flow->ts)
-          printers.identifiers.print(type.text),
-          true,
-        );
-      }
+      case ts.SyntaxKind.Identifier:
+        // @ts-expect-error todo(flow->ts)
+        return printers.identifiers.print(type.text);
 
       case ts.SyntaxKind.BindingElement:
         // @ts-expect-error todo(flow->ts)

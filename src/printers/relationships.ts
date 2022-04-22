@@ -70,12 +70,11 @@ export const importExportSpecifier = (
 //   return str;
 // };
 
-export const namespace = (name: string, hidePunctuation = false): string => {
+export const namespace = (name: string): string => {
   if (namespaceManager.nsExists(name)) {
-    return `${name}${hidePunctuation ? "" : "$"}`;
+    return name + "$";
   }
-
-  return name + (hidePunctuation ? "" : ".");
+  return name + ".";
 };
 
 export const namespaceProp = (
