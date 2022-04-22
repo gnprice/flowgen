@@ -206,56 +206,110 @@ export function getFullyQualifiedName(
   checks = true,
   delimiter = "$",
 ): string {
-  if (checker.current) {
-    const typeChecker = checker.current;
-    if (checks) {
-      let isExternalSymbol = false;
-      // todo(flow->ts) callers pass `checks` true only when `type` an EntityName
-      const leftMost = getLeftMostEntityName(type as ts.EntityName);
-      if (leftMost) {
-        //$todo Flow has problems when switching variables instead of literals
-        const leftMostSymbol = typeChecker.getSymbolAtLocation(leftMost);
-        const decl =
-          leftMostSymbol &&
-          leftMostSymbol.declarations &&
-          leftMostSymbol.declarations.length
-            ? leftMostSymbol.declarations[0]
-            : null;
-        isExternalSymbol =
-          (decl &&
-            (decl.kind === ts.SyntaxKind.NamespaceImport ||
-              decl.kind === ts.SyntaxKind.NamedImports ||
-              decl.kind === ts.SyntaxKind.TypeParameter)) ||
-          leftMostSymbol?.parent?.escapedName === "__global";
-      }
-      if (!symbol || typeChecker.isUnknownSymbol(symbol) || isExternalSymbol) {
-        return printEntityName(type);
-      }
+  const typeChecker = checker.current;
+  if (!typeChecker) {
+    return printEntityName(type);
+  }
+
+  if (checks) {
+    let isExternalSymbol = false;
+    // todo(flow->ts) callers pass `checks` true only when `type` an EntityName
+    const leftMost = getLeftMostEntityName(type as ts.EntityName);
+    if (leftMost) {
+      //$todo Flow has problems when switching variables instead of literals
+      const leftMostSymbol = typeChecker.getSymbolAtLocation(leftMost);
+      const decl =
+        leftMostSymbol &&
+        leftMostSymbol.declarations &&
+        leftMostSymbol.declarations.length
+          ? leftMostSymbol.declarations[0]
+          : null;
+      isExternalSymbol =
+        (decl &&
+          (decl.kind === ts.SyntaxKind.NamespaceImport ||
+            decl.kind === ts.SyntaxKind.NamedImports ||
+            decl.kind === ts.SyntaxKind.TypeParameter)) ||
+        leftMostSymbol?.parent?.escapedName === "__global";
     }
-    if (
-      symbol.parent?.valueDeclaration?.kind === ts.SyntaxKind.SourceFile ||
-      (symbol.parent?.valueDeclaration?.kind ===
-        ts.SyntaxKind.ModuleDeclaration &&
-        (symbol.parent?.valueDeclaration.flags & ts.NodeFlags.Namespace) === 0)
-    ) {
-      return typeChecker.symbolToString(symbol);
+    if (!symbol || typeChecker.isUnknownSymbol(symbol) || isExternalSymbol) {
+      return printEntityName(type);
     }
-    // if (
-    //   (symbol.flags & ts.SymbolFlags.ValueModule) ===
-    //   ts.SymbolFlags.ValueModule
-    // ) {
-    //   return typeChecker.symbolToString(
-    //     symbol,
-    //     undefined,
-    //     /*meaning*/ undefined,
-    //     ts.SymbolFormatFlags.DoNotIncludeSymbolChain |
-    //       ts.SymbolFormatFlags.AllowAnyNodeKind,
-    //   );
-    // }
-    if (symbol.valueDeclaration?.kind === ts.SyntaxKind.EnumMember)
-      delimiter = ".";
+  }
+  if (
+    symbol.parent?.valueDeclaration?.kind === ts.SyntaxKind.SourceFile ||
+    (symbol.parent?.valueDeclaration?.kind ===
+      ts.SyntaxKind.ModuleDeclaration &&
+      (symbol.parent?.valueDeclaration.flags & ts.NodeFlags.Namespace) === 0)
+  ) {
+    return typeChecker.symbolToString(symbol);
+  }
+  // if (
+  //   (symbol.flags & ts.SymbolFlags.ValueModule) ===
+  //   ts.SymbolFlags.ValueModule
+  // ) {
+  //   return typeChecker.symbolToString(
+  //     symbol,
+  //     undefined,
+  //     /*meaning*/ undefined,
+  //     ts.SymbolFormatFlags.DoNotIncludeSymbolChain |
+  //       ts.SymbolFormatFlags.AllowAnyNodeKind,
+  //   );
+  // }
+  if (symbol.valueDeclaration?.kind === ts.SyntaxKind.EnumMember)
+    delimiter = ".";
+  return symbol.parent
+    ? getFullyQualifiedName(symbol.parent, type, true, delimiter) +
+        delimiter +
+        typeChecker.symbolToString(symbol)
+    : typeChecker.symbolToString(
+        symbol,
+        undefined,
+        /*meaning*/ undefined,
+        //$todo Some problem about TypeScript enums conversion and bitwise operators
+        ts.SymbolFormatFlags.DoNotIncludeSymbolChain |
+          ts.SymbolFormatFlags.AllowAnyNodeKind,
+      );
+}
+
+export function getTypeofFullyQualifiedName(
+  symbol: ts.Symbol | undefined,
+  type: ts.EntityName,
+  delimiter = ".",
+): string {
+  const typeChecker = checker.current;
+  if (!typeChecker) {
+    return printEntityName(type);
+  }
+
+  let isExternalSymbol = false;
+  const leftMost = getLeftMostEntityName(type);
+  if (leftMost) {
+    //$todo Flow has problems when switching variables instead of literals
+    const leftMostSymbol = typeChecker.getSymbolAtLocation(leftMost);
+    const decl = leftMostSymbol ? leftMostSymbol.declarations[0] : null;
+    isExternalSymbol =
+      decl &&
+      (decl.kind === ts.SyntaxKind.NamespaceImport ||
+        decl.kind === ts.SyntaxKind.NamedImports);
+  }
+  if (!symbol || typeChecker.isUnknownSymbol(symbol) || isExternalSymbol) {
+    return printEntityName(type);
+  }
+  if (
+    symbol.parent?.valueDeclaration?.kind === ts.SyntaxKind.SourceFile ||
+    (symbol.parent?.valueDeclaration?.kind ===
+      ts.SyntaxKind.ModuleDeclaration &&
+      (symbol.parent?.valueDeclaration.flags & ts.NodeFlags.Namespace) === 0)
+  ) {
+    return typeChecker.symbolToString(symbol);
+  }
+  if (symbol.parent?.escapedName === "__type") {
     return symbol.parent
-      ? getFullyQualifiedName(symbol.parent, type, true, delimiter) +
+      ? getTypeofFullyQualifiedName(
+          // @ts-expect-error todo(flow->ts)
+          symbol.parent.declarations[0].parent.symbol,
+          type,
+        ) +
           delimiter +
           typeChecker.symbolToString(symbol)
       : typeChecker.symbolToString(
@@ -267,76 +321,22 @@ export function getFullyQualifiedName(
             ts.SymbolFormatFlags.AllowAnyNodeKind,
         );
   } else {
-    return printEntityName(type);
-  }
-}
-
-export function getTypeofFullyQualifiedName(
-  symbol: ts.Symbol | undefined,
-  type: ts.EntityName,
-  delimiter = ".",
-): string {
-  if (checker.current) {
-    const typeChecker = checker.current;
-    let isExternalSymbol = false;
-    const leftMost = getLeftMostEntityName(type);
-    if (leftMost) {
-      //$todo Flow has problems when switching variables instead of literals
-      const leftMostSymbol = typeChecker.getSymbolAtLocation(leftMost);
-      const decl = leftMostSymbol ? leftMostSymbol.declarations[0] : null;
-      isExternalSymbol =
-        decl &&
-        (decl.kind === ts.SyntaxKind.NamespaceImport ||
-          decl.kind === ts.SyntaxKind.NamedImports);
+    let delimiter = "$";
+    if (symbol.valueDeclaration?.kind === ts.SyntaxKind.EnumMember) {
+      delimiter = ".";
     }
-    if (!symbol || typeChecker.isUnknownSymbol(symbol) || isExternalSymbol) {
-      return printEntityName(type);
-    }
-    if (
-      symbol.parent?.valueDeclaration?.kind === ts.SyntaxKind.SourceFile ||
-      (symbol.parent?.valueDeclaration?.kind ===
-        ts.SyntaxKind.ModuleDeclaration &&
-        (symbol.parent?.valueDeclaration.flags & ts.NodeFlags.Namespace) === 0)
-    ) {
-      return typeChecker.symbolToString(symbol);
-    }
-    if (symbol.parent?.escapedName === "__type") {
-      return symbol.parent
-        ? getTypeofFullyQualifiedName(
-            // @ts-expect-error todo(flow->ts)
-            symbol.parent.declarations[0].parent.symbol,
-            type,
-          ) +
-            delimiter +
-            typeChecker.symbolToString(symbol)
-        : typeChecker.symbolToString(
-            symbol,
-            undefined,
-            /*meaning*/ undefined,
-            //$todo Some problem about TypeScript enums conversion and bitwise operators
-            ts.SymbolFormatFlags.DoNotIncludeSymbolChain |
-              ts.SymbolFormatFlags.AllowAnyNodeKind,
-          );
-    } else {
-      let delimiter = "$";
-      if (symbol.valueDeclaration?.kind === ts.SyntaxKind.EnumMember) {
-        delimiter = ".";
-      }
-      return symbol.parent
-        ? getTypeofFullyQualifiedName(symbol.parent, type, delimiter) +
-            delimiter +
-            typeChecker.symbolToString(symbol)
-        : typeChecker.symbolToString(
-            symbol,
-            undefined,
-            /*meaning*/ undefined,
-            //$todo Some problem about TypeScript enums conversion and bitwise operators
-            ts.SymbolFormatFlags.DoNotIncludeSymbolChain |
-              ts.SymbolFormatFlags.AllowAnyNodeKind,
-          );
-    }
-  } else {
-    return printEntityName(type);
+    return symbol.parent
+      ? getTypeofFullyQualifiedName(symbol.parent, type, delimiter) +
+          delimiter +
+          typeChecker.symbolToString(symbol)
+      : typeChecker.symbolToString(
+          symbol,
+          undefined,
+          /*meaning*/ undefined,
+          //$todo Some problem about TypeScript enums conversion and bitwise operators
+          ts.SymbolFormatFlags.DoNotIncludeSymbolChain |
+            ts.SymbolFormatFlags.AllowAnyNodeKind,
+        );
   }
 }
 
