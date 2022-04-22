@@ -77,14 +77,9 @@ export const namespace = (name: string): string => {
   return name + ".";
 };
 
-export const namespaceProp = (
-  name: string,
-  hidePunctuation = false,
-): string => {
+export const namespaceProp = (name: string): string => {
   if (namespaceManager.nsPropExists(name)) {
-    return `${namespaceManager.getNSForProp(name)}${
-      hidePunctuation ? "" : "$"
-    }${name}`;
+    return namespaceManager.getNSForProp(name) + "$" + name;
   }
 
   return name;
