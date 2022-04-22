@@ -130,6 +130,15 @@ export function getLeftMostPropertyAccessExpression(
   }
 }
 
+function isModule(node?: ts.Node): boolean {
+  if (!node) return false;
+  return (
+    node.kind === ts.SyntaxKind.SourceFile ||
+    (node.kind === ts.SyntaxKind.ModuleDeclaration &&
+      (node.flags & ts.NodeFlags.Namespace) === 0)
+  );
+}
+
 export function getFullyQualifiedPropertyAccessExpression(
   symbol: ts.Symbol | undefined,
   type: ts.PropertyAccessExpression | ts.Identifier,
@@ -167,11 +176,7 @@ export function getFullyQualifiedPropertyAccessExpression(
     );
   }
 
-  if (
-    symbol.parent.valueDeclaration?.kind === ts.SyntaxKind.SourceFile ||
-    (symbol.parent.valueDeclaration?.kind === ts.SyntaxKind.ModuleDeclaration &&
-      (symbol.parent.valueDeclaration.flags & ts.NodeFlags.Namespace) === 0)
-  ) {
+  if (isModule(symbol.parent.valueDeclaration)) {
     return typeChecker.symbolToString(symbol);
   }
 
@@ -236,11 +241,7 @@ export function getFullyQualifiedName(
     );
   }
 
-  if (
-    symbol.parent.valueDeclaration?.kind === ts.SyntaxKind.SourceFile ||
-    (symbol.parent.valueDeclaration?.kind === ts.SyntaxKind.ModuleDeclaration &&
-      (symbol.parent.valueDeclaration.flags & ts.NodeFlags.Namespace) === 0)
-  ) {
+  if (isModule(symbol.parent.valueDeclaration)) {
     return typeChecker.symbolToString(symbol);
   }
 
@@ -289,11 +290,7 @@ export function getTypeofFullyQualifiedName(
     );
   }
 
-  if (
-    symbol.parent.valueDeclaration?.kind === ts.SyntaxKind.SourceFile ||
-    (symbol.parent.valueDeclaration?.kind === ts.SyntaxKind.ModuleDeclaration &&
-      (symbol.parent.valueDeclaration.flags & ts.NodeFlags.Namespace) === 0)
-  ) {
+  if (isModule(symbol.parent.valueDeclaration)) {
     return typeChecker.symbolToString(symbol);
   }
   if (symbol.parent.escapedName === "__type") {
