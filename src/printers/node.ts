@@ -214,8 +214,7 @@ export function getFullyQualifiedName(
 
   if (checks) {
     let isExternalSymbol = false;
-    // todo(flow->ts) callers pass `checks` true only when `type` an EntityName
-    const leftMost = getLeftMostEntityName(type as ts.EntityName);
+    const leftMost = getLeftMostEntityName(type);
     if (leftMost) {
       //$todo Flow has problems when switching variables instead of literals
       const leftMostSymbol = typeChecker.getSymbolAtLocation(leftMost);

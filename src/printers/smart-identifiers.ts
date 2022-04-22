@@ -96,13 +96,15 @@ export function renames(
   return false;
 }
 
-export function getLeftMostEntityName(type: ts.EntityName): ts.Identifier {
-  if (type.kind === ts.SyntaxKind.QualifiedName) {
+export function getLeftMostEntityName(type: ts.Node): ts.Identifier | void {
+  if (ts.isQualifiedName(type)) {
     return type.left.kind === ts.SyntaxKind.Identifier
       ? type.left
       : getLeftMostEntityName(type.left);
-  } else if (type.kind === ts.SyntaxKind.Identifier) {
+  } else if (ts.isIdentifier(type)) {
     return type;
+  } else {
+    return undefined;
   }
 }
 
