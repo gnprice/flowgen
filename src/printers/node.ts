@@ -235,11 +235,22 @@ export function getFullyQualifiedName(
       return printEntityName(type);
     }
   }
+
+  if (!symbol.parent) {
+    return typeChecker.symbolToString(
+      symbol,
+      undefined,
+      /*meaning*/ undefined,
+      //$todo Some problem about TypeScript enums conversion and bitwise operators
+      ts.SymbolFormatFlags.DoNotIncludeSymbolChain |
+        ts.SymbolFormatFlags.AllowAnyNodeKind,
+    );
+  }
+
   if (
-    symbol.parent?.valueDeclaration?.kind === ts.SyntaxKind.SourceFile ||
-    (symbol.parent?.valueDeclaration?.kind ===
-      ts.SyntaxKind.ModuleDeclaration &&
-      (symbol.parent?.valueDeclaration.flags & ts.NodeFlags.Namespace) === 0)
+    symbol.parent.valueDeclaration?.kind === ts.SyntaxKind.SourceFile ||
+    (symbol.parent.valueDeclaration?.kind === ts.SyntaxKind.ModuleDeclaration &&
+      (symbol.parent.valueDeclaration.flags & ts.NodeFlags.Namespace) === 0)
   ) {
     return typeChecker.symbolToString(symbol);
   }
@@ -257,18 +268,11 @@ export function getFullyQualifiedName(
   // }
   if (symbol.valueDeclaration?.kind === ts.SyntaxKind.EnumMember)
     delimiter = ".";
-  return symbol.parent
-    ? getFullyQualifiedName(symbol.parent, type, true, delimiter) +
-        delimiter +
-        typeChecker.symbolToString(symbol)
-    : typeChecker.symbolToString(
-        symbol,
-        undefined,
-        /*meaning*/ undefined,
-        //$todo Some problem about TypeScript enums conversion and bitwise operators
-        ts.SymbolFormatFlags.DoNotIncludeSymbolChain |
-          ts.SymbolFormatFlags.AllowAnyNodeKind,
-      );
+  return (
+    getFullyQualifiedName(symbol.parent, type, true, delimiter) +
+    delimiter +
+    typeChecker.symbolToString(symbol)
+  );
 }
 
 export function getTypeofFullyQualifiedName(
@@ -295,48 +299,45 @@ export function getTypeofFullyQualifiedName(
   if (!symbol || typeChecker.isUnknownSymbol(symbol) || isExternalSymbol) {
     return printEntityName(type);
   }
+
+  if (!symbol.parent) {
+    return typeChecker.symbolToString(
+      symbol,
+      undefined,
+      /*meaning*/ undefined,
+      //$todo Some problem about TypeScript enums conversion and bitwise operators
+      ts.SymbolFormatFlags.DoNotIncludeSymbolChain |
+        ts.SymbolFormatFlags.AllowAnyNodeKind,
+    );
+  }
+
   if (
-    symbol.parent?.valueDeclaration?.kind === ts.SyntaxKind.SourceFile ||
-    (symbol.parent?.valueDeclaration?.kind ===
-      ts.SyntaxKind.ModuleDeclaration &&
-      (symbol.parent?.valueDeclaration.flags & ts.NodeFlags.Namespace) === 0)
+    symbol.parent.valueDeclaration?.kind === ts.SyntaxKind.SourceFile ||
+    (symbol.parent.valueDeclaration?.kind === ts.SyntaxKind.ModuleDeclaration &&
+      (symbol.parent.valueDeclaration.flags & ts.NodeFlags.Namespace) === 0)
   ) {
     return typeChecker.symbolToString(symbol);
   }
-  if (symbol.parent?.escapedName === "__type") {
-    return symbol.parent
-      ? getTypeofFullyQualifiedName(
-          // @ts-expect-error todo(flow->ts)
-          symbol.parent.declarations[0].parent.symbol,
-          type,
-        ) +
-          delimiter +
-          typeChecker.symbolToString(symbol)
-      : typeChecker.symbolToString(
-          symbol,
-          undefined,
-          /*meaning*/ undefined,
-          //$todo Some problem about TypeScript enums conversion and bitwise operators
-          ts.SymbolFormatFlags.DoNotIncludeSymbolChain |
-            ts.SymbolFormatFlags.AllowAnyNodeKind,
-        );
+  if (symbol.parent.escapedName === "__type") {
+    return (
+      getTypeofFullyQualifiedName(
+        // @ts-expect-error todo(flow->ts)
+        symbol.parent.declarations[0].parent.symbol,
+        type,
+      ) +
+      delimiter +
+      typeChecker.symbolToString(symbol)
+    );
   } else {
     let delimiter = "$";
     if (symbol.valueDeclaration?.kind === ts.SyntaxKind.EnumMember) {
       delimiter = ".";
     }
-    return symbol.parent
-      ? getTypeofFullyQualifiedName(symbol.parent, type, delimiter) +
-          delimiter +
-          typeChecker.symbolToString(symbol)
-      : typeChecker.symbolToString(
-          symbol,
-          undefined,
-          /*meaning*/ undefined,
-          //$todo Some problem about TypeScript enums conversion and bitwise operators
-          ts.SymbolFormatFlags.DoNotIncludeSymbolChain |
-            ts.SymbolFormatFlags.AllowAnyNodeKind,
-        );
+    return (
+      getTypeofFullyQualifiedName(symbol.parent, type, delimiter) +
+      delimiter +
+      typeChecker.symbolToString(symbol)
+    );
   }
 }
 
