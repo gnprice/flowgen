@@ -81,11 +81,8 @@ type PrintNode =
 export function printEntityName(type: ts.Node): string {
   if (ts.isQualifiedName(type)) {
     return (
-      printers.relationships.namespace(
-        type.left.kind === ts.SyntaxKind.Identifier
-          ? type.left.text
-          : printEntityName(type.left),
-      ) + printEntityName(type.right)
+      printers.relationships.namespace(printEntityName(type.left)) +
+      type.right.text
     );
   } else if (ts.isIdentifier(type)) {
     return type.text;
@@ -118,10 +115,8 @@ export function getLeftMostPropertyAccessExpression(
   type: ts.PropertyAccessExpression | ts.Identifier,
 ) {
   if (type.kind === ts.SyntaxKind.PropertyAccessExpression) {
-    return ts.isIdentifier(type.expression)
-      ? type.expression
-      : // @ts-expect-error todo(flow->ts)
-        getLeftMostPropertyAccessExpression(type.expression);
+    // @ts-expect-error todo(flow->ts)
+    return getLeftMostPropertyAccessExpression(type.expression);
   } else if (type.kind === ts.SyntaxKind.Identifier) {
     return type;
   }
