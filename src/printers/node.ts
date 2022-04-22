@@ -139,6 +139,20 @@ function isModule(node?: ts.Node): boolean {
   );
 }
 
+function printSymbolWithoutParent(
+  typeChecker: ts.TypeChecker,
+  symbol: ts.Symbol,
+) {
+  return typeChecker.symbolToString(
+    symbol,
+    undefined,
+    /*meaning*/ undefined,
+    //$todo Some problem about TypeScript enums conversion and bitwise operators
+    ts.SymbolFormatFlags.DoNotIncludeSymbolChain |
+      ts.SymbolFormatFlags.AllowAnyNodeKind,
+  );
+}
+
 export function getFullyQualifiedPropertyAccessExpression(
   symbol: ts.Symbol | undefined,
   type: ts.PropertyAccessExpression | ts.Identifier,
@@ -166,14 +180,7 @@ export function getFullyQualifiedPropertyAccessExpression(
   }
 
   if (!symbol.parent) {
-    return typeChecker.symbolToString(
-      symbol,
-      undefined,
-      /*meaning*/ undefined,
-      //$todo Some problem about TypeScript enums conversion and bitwise operators
-      ts.SymbolFormatFlags.DoNotIncludeSymbolChain |
-        ts.SymbolFormatFlags.AllowAnyNodeKind,
-    );
+    return printSymbolWithoutParent(typeChecker, symbol);
   }
 
   if (isModule(symbol.parent.valueDeclaration)) {
@@ -231,14 +238,7 @@ export function getFullyQualifiedName(
   }
 
   if (!symbol.parent) {
-    return typeChecker.symbolToString(
-      symbol,
-      undefined,
-      /*meaning*/ undefined,
-      //$todo Some problem about TypeScript enums conversion and bitwise operators
-      ts.SymbolFormatFlags.DoNotIncludeSymbolChain |
-        ts.SymbolFormatFlags.AllowAnyNodeKind,
-    );
+    return printSymbolWithoutParent(typeChecker, symbol);
   }
 
   if (isModule(symbol.parent.valueDeclaration)) {
@@ -280,14 +280,7 @@ export function getTypeofFullyQualifiedName(
   }
 
   if (!symbol.parent) {
-    return typeChecker.symbolToString(
-      symbol,
-      undefined,
-      /*meaning*/ undefined,
-      //$todo Some problem about TypeScript enums conversion and bitwise operators
-      ts.SymbolFormatFlags.DoNotIncludeSymbolChain |
-        ts.SymbolFormatFlags.AllowAnyNodeKind,
-    );
+    return printSymbolWithoutParent(typeChecker, symbol);
   }
 
   if (isModule(symbol.parent.valueDeclaration)) {
