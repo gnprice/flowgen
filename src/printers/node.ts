@@ -259,7 +259,7 @@ export function getTypeofFullyQualifiedName(
 
   // console.log({ type, symbol });
 
-  if (symbol.escapedName === "__type") {
+  if (symbol.flags & ts.SymbolFlags.TypeLiteral) {
     // This is a type literal.  Try to find a name for it.
     // @ts-expect-error todo(flow->ts)
     symbol = symbol.declarations[0].parent.symbol;
