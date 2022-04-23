@@ -113,7 +113,7 @@ function printPropertyAccessExpression(
 
 function getLeftMostPropertyAccessExpression(
   type: ts.PropertyAccessExpression | ts.Identifier,
-) {
+): ts.Identifier {
   if (type.kind === ts.SyntaxKind.PropertyAccessExpression) {
     // @ts-expect-error todo(flow->ts)
     return getLeftMostPropertyAccessExpression(type.expression);
