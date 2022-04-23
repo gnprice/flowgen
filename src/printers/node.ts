@@ -191,7 +191,6 @@ export function getFullyQualifiedName(
     | ts.InterfaceDeclaration
     | ts.TypeAliasDeclaration
     | ts.ModuleDeclaration,
-  checks = true,
   delimiter = "$",
 ): string {
   const typeChecker = checker.current;
@@ -199,27 +198,25 @@ export function getFullyQualifiedName(
     return printEntityName(type);
   }
 
-  if (true) {
-    let isExternalSymbol = false;
-    if (ts.isEntityName(type)) {
-      const leftMost = getLeftMostEntityName(type);
-      const leftMostSymbol = typeChecker.getSymbolAtLocation(leftMost);
-      const decl =
-        leftMostSymbol &&
-        leftMostSymbol.declarations &&
-        leftMostSymbol.declarations.length
-          ? leftMostSymbol.declarations[0]
-          : null;
-      isExternalSymbol =
-        (decl &&
-          (decl.kind === ts.SyntaxKind.NamespaceImport ||
-            decl.kind === ts.SyntaxKind.NamedImports ||
-            decl.kind === ts.SyntaxKind.TypeParameter)) ||
-        leftMostSymbol?.parent?.escapedName === "__global";
-    }
-    if (!symbol || typeChecker.isUnknownSymbol(symbol) || isExternalSymbol) {
-      return printEntityName(type);
-    }
+  let isExternalSymbol = false;
+  if (ts.isEntityName(type)) {
+    const leftMost = getLeftMostEntityName(type);
+    const leftMostSymbol = typeChecker.getSymbolAtLocation(leftMost);
+    const decl =
+      leftMostSymbol &&
+      leftMostSymbol.declarations &&
+      leftMostSymbol.declarations.length
+        ? leftMostSymbol.declarations[0]
+        : null;
+    isExternalSymbol =
+      (decl &&
+        (decl.kind === ts.SyntaxKind.NamespaceImport ||
+          decl.kind === ts.SyntaxKind.NamedImports ||
+          decl.kind === ts.SyntaxKind.TypeParameter)) ||
+      leftMostSymbol?.parent?.escapedName === "__global";
+  }
+  if (!symbol || typeChecker.isUnknownSymbol(symbol) || isExternalSymbol) {
+    return printEntityName(type);
   }
 
   if (!symbol.parent) {
@@ -233,7 +230,7 @@ export function getFullyQualifiedName(
   if (symbol.valueDeclaration?.kind === ts.SyntaxKind.EnumMember)
     delimiter = "."; // TODO should this really be passed recursively?
   return (
-    getFullyQualifiedName(symbol.parent, type, true, delimiter) +
+    getFullyQualifiedName(symbol.parent, type, delimiter) +
     delimiter +
     typeChecker.symbolToString(symbol)
   );

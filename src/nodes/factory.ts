@@ -61,7 +61,7 @@ export class Factory {
     }
     if (context instanceof NamespaceNode && checker.current) {
       const symbol = checker.current.getSymbolAtLocation(node.name);
-      name = getFullyQualifiedName(symbol, node, false);
+      name = getFullyQualifiedName(symbol, node);
     }
 
     if (!this._functionDeclarations[name]) {
@@ -98,7 +98,7 @@ export class Factory {
     }
     if (context instanceof NamespaceNode && checker.current) {
       const symbol = checker.current.getSymbolAtLocation(node.name);
-      name = getFullyQualifiedName(symbol, node, false);
+      name = getFullyQualifiedName(symbol, node);
     }
 
     if (Object.keys(this._propDeclarations).includes(name)) {
@@ -128,7 +128,7 @@ export class Factory {
     }
     if (context instanceof NamespaceNode && checker.current) {
       const symbol = checker.current.getSymbolAtLocation(node.name);
-      contextName = getFullyQualifiedName(symbol, node, false);
+      contextName = getFullyQualifiedName(symbol, node);
     }
     if (typeof contextName !== "undefined") {
       if (this._functionDeclarations[contextName]) {
