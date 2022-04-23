@@ -16,13 +16,51 @@
      // The symbol at `n.m` is the parent of the symbol at `n.m.A`.
    > ch.getSymbolAtLocation(nma.left) === ch.getSymbolAtLocation(nma).parent
    true
+
+
+     // Parse and type-check a program with one file importing from another.
+   > [ch, ff] = quickProgram(new Map([['a.ts', `export type A = number`], ['b.ts', `import { A as AA } from './a'`]])); 1
+   1
+   > [fa, fb] = [ff.get('a.ts'), ff.get('b.ts')]; 1
+   1
+     // The import of `A as AA`.
+   > el = fb.statements[0].importClause.namedBindings.elements[0]; ts.SyntaxKind[el.kind]
+   'ImportSpecifier'
+     // Its `name` is the local name; `propertyName` is the name it had on the module.
+   > [el.name.text, el.propertyName.text]
+   [ 'AA', 'A' ]
+     // Its `symbol` is just the symbol at its `name`.
+   > el.symbol === ch.getSymbolAtLocation(el.name)
+   true
+     // Its symbol's declaration is this ImportSpecifier itself.
+   > el.symbol.declarations[0] === el
+   true
+
+     // TODO but the actual import isn't working, hmmm:
+   > fb.resolvedModules
+   Map(1) { './a' => undefined }
+
+
+
  */
 import os from "os";
 import path from "path";
 import repl from "repl";
 import ts from "typescript";
 
-export function quickProgram(map: Map<string, string>): ts.Program {
+/** Return a string that's almost surely different every time. */
+const randString = (): string => (Math.random() * 2 ** 54).toString(36);
+
+export function quickProgram(
+  map: Map<string, string>,
+): [ts.TypeChecker, Map<string, ts.SourceFile>] {
+  const basePath = `/tmp/${randString()}`;
+  // @ts-expect-error iterating an iterator
+  const origNames = [...map.keys()];
+  map = new Map(
+    origNames.map(name => [path.join(basePath, name), map.get(name)]),
+  );
+
   const compilerHost = ts.createCompilerHost({}, true);
   const oldSourceFile = compilerHost.getSourceFile;
   compilerHost.getSourceFile = (file, languageVersion) => {
@@ -32,15 +70,27 @@ export function quickProgram(map: Map<string, string>): ts.Program {
     }
     return oldSourceFile(file, languageVersion);
   };
+
   // @ts-expect-error iterating an iterator
-  return ts.createProgram([...map.keys()], {}, compilerHost);
+  const program = ts.createProgram([...map.keys()], {}, compilerHost);
+  return [
+    program.getTypeChecker(),
+    new Map(
+      origNames.map(name => [
+        name,
+        program.getSourceFile(path.join(basePath, name)),
+      ]),
+    ),
+  ];
 }
 
 export function quickSourceFile(
   sourceText: string,
 ): [ts.TypeChecker, ts.SourceFile] {
-  const program = quickProgram(new Map([["file.ts", sourceText]]));
-  return [program.getTypeChecker(), program.getSourceFile("file.ts")];
+  const [checker, sourceFiles] = quickProgram(
+    new Map([["file.ts", sourceText]]),
+  );
+  return [checker, sourceFiles.get("file.ts")];
 }
 
 const r = repl.start();
