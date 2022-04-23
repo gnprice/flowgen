@@ -1,0 +1,13 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`should handle \`typeof\` 1`] = `
+"declare export var x: {
+  o: {
+    f(string: any): number,
+    ...
+  },
+  ...
+};
+export type Txof = typeof x.o.f;
+"
+`;
