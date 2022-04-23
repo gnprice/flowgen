@@ -265,21 +265,13 @@ export function getTypeofFullyQualifiedName(
     return typeChecker.symbolToString(symbol);
   }
 
-  let delimiter;
-  let parentName;
-  if (symbol.parent.escapedName === "__type") {
-    delimiter = ".";
-    parentName = getTypeofFullyQualifiedName(
-      // @ts-expect-error todo(flow->ts)
-      symbol.parent.declarations[0].parent.symbol,
-      type,
-    );
-  } else {
-    delimiter =
-      symbol.valueDeclaration?.kind === ts.SyntaxKind.EnumMember ? "." : "$";
-    parentName = getTypeofFullyQualifiedName(symbol.parent, type);
-  }
-  return parentName + delimiter + typeChecker.symbolToString(symbol);
+  const delimiter =
+    symbol.valueDeclaration?.kind === ts.SyntaxKind.EnumMember ? "." : "$";
+  return (
+    getTypeofFullyQualifiedName(symbol.parent, type) +
+    delimiter +
+    typeChecker.symbolToString(symbol)
+  );
 }
 
 export function printFlowGenHelper(env: {
