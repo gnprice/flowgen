@@ -62,7 +62,11 @@ export function quickProgram(
   );
 
   const compilerHost = ts.createCompilerHost({}, true);
+  const oldFileExists = compilerHost.fileExists;
   const oldSourceFile = compilerHost.getSourceFile;
+  compilerHost.fileExists = fileName => {
+    return map.has(fileName) || oldFileExists(fileName);
+  };
   compilerHost.getSourceFile = (file, languageVersion) => {
     const sourceText = map.get(file);
     if (sourceText !== undefined) {
