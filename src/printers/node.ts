@@ -240,6 +240,7 @@ export function getTypeofFullyQualifiedName(
   symbol: ts.Symbol | undefined,
   type: ts.EntityName,
 ): string {
+  // console.log({ symbol, type });
   const typeChecker = checker.current;
   if (!typeChecker) {
     return printEntityName(type);
@@ -262,6 +263,7 @@ export function getTypeofFullyQualifiedName(
   }
 
   if (isModule(symbol.parent.valueDeclaration)) {
+    // return printErrorType("module", type);
     return typeChecker.symbolToString(symbol);
   }
 
