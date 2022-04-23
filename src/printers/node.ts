@@ -273,24 +273,15 @@ export function getTypeofFullyQualifiedName(
     return typeChecker.symbolToString(symbol);
   }
 
-  let delimiter;
-  let parentName;
-  if (false && symbol.parent.escapedName === "__type") {
-    // return printErrorType("__type", type);
-    delimiter = ".";
-    parentName = getTypeofFullyQualifiedName(
-      // @ts-expect-error todo(flow->ts)
-      symbol.parent.declarations[0].parent.symbol,
-      type,
-    );
-  } else {
-    delimiter =
-      symbol.flags & (ts.SymbolFlags.EnumMember | ts.SymbolFlags.ClassMember)
-        ? "."
-        : "$";
-    parentName = getTypeofFullyQualifiedName(symbol.parent, type);
-  }
-  return parentName + delimiter + typeChecker.symbolToString(symbol);
+  const delimiter =
+    symbol.flags & (ts.SymbolFlags.EnumMember | ts.SymbolFlags.ClassMember)
+      ? "."
+      : "$";
+  return (
+    getTypeofFullyQualifiedName(symbol.parent, type) +
+    delimiter +
+    typeChecker.symbolToString(symbol)
+  );
 }
 
 export function printFlowGenHelper(env: {
