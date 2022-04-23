@@ -240,7 +240,6 @@ export function getTypeofFullyQualifiedName(
   symbol: ts.Symbol | undefined,
   type: ts.EntityName,
 ): string {
-  // console.log({ symbol, type });
   const typeChecker = checker.current;
   if (!typeChecker) {
     return printEntityName(type);
@@ -258,22 +257,40 @@ export function getTypeofFullyQualifiedName(
     return printEntityName(type);
   }
 
+  // console.log({ type, symbol });
+
+  if (symbol.escapedName === "__type") {
+    // This is a type literal.  Try to find a name for it.
+    // @ts-expect-error todo(flow->ts)
+    symbol = symbol.declarations[0].parent.symbol;
+  }
+
   if (!symbol.parent) {
     return printSymbolWithoutParent(typeChecker, symbol);
   }
 
   if (isModule(symbol.parent.valueDeclaration)) {
-    // return printErrorType("module", type);
     return typeChecker.symbolToString(symbol);
   }
 
-  const delimiter =
-    symbol.valueDeclaration?.kind === ts.SyntaxKind.EnumMember ? "." : "$";
-  return (
-    getTypeofFullyQualifiedName(symbol.parent, type) +
-    delimiter +
-    typeChecker.symbolToString(symbol)
-  );
+  let delimiter;
+  let parentName;
+  if (false && symbol.parent.escapedName === "__type") {
+    // return printErrorType("__type", type);
+    delimiter = ".";
+    parentName = getTypeofFullyQualifiedName(
+      // @ts-expect-error todo(flow->ts)
+      symbol.parent.declarations[0].parent.symbol,
+      type,
+    );
+  } else {
+    delimiter =
+      symbol.flags & (ts.SymbolFlags.EnumMember | ts.SymbolFlags.ClassMember)
+        ? "."
+        : "$";
+    parentName = getTypeofFullyQualifiedName(symbol.parent, type);
+  }
+  return parentName + delimiter + typeChecker.symbolToString(symbol);
 }
 
 export function printFlowGenHelper(env: {
