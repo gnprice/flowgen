@@ -4,17 +4,13 @@
  * Sample usage:
    $ node lib/repl.js
      // Parse a sample program, and get a type-checker on it.
-   > [ch, f] = quickSourceFile(`
-       namespace n {
-         export namespace m {
-           export type A = number; } }
-       type T = n.m.A;`); 1
+   > [ch, f] = quickSourceFile(`namespace n { export type A = number; } type T = n.A;`); 1
    1
-     // The qualified-name `n.m.A` from the sample program.
-   > nma = f.statements[1].type.typeName; ts.isQualifiedName(nma)
+     // The qualified-name `n.A` from the sample program.
+   > na = f.statements[1].type.typeName; ts.isQualifiedName(na)
    true
-     // The symbol at `n.m` is the parent of the symbol at `n.m.A`.
-   > ch.getSymbolAtLocation(nma.left) === ch.getSymbolAtLocation(nma).parent
+     // The symbol at `n` is the parent of the symbol at `n.A`.
+   > ch.getSymbolAtLocation(na.left) === ch.getSymbolAtLocation(na).parent
    true
 
 
