@@ -139,7 +139,6 @@ function printSymbolWithoutParent(
     symbol,
     undefined,
     /*meaning*/ undefined,
-    //$todo Some problem about TypeScript enums conversion and bitwise operators
     ts.SymbolFormatFlags.DoNotIncludeSymbolChain |
       ts.SymbolFormatFlags.AllowAnyNodeKind,
   );
@@ -157,7 +156,6 @@ export function getFullyQualifiedPropertyAccessExpression(
   let isExternalSymbol = false;
   const leftMost = getLeftMostPropertyAccessExpression(type);
   if (leftMost) {
-    //$todo Flow has problems when switching variables instead of literals
     const leftMostSymbol = typeChecker.getSymbolAtLocation(leftMost);
     if (leftMostSymbol) {
       const decl = leftMostSymbol.declarations[0];
@@ -208,7 +206,6 @@ export function getFullyQualifiedName(
     let isExternalSymbol = false;
     if (ts.isEntityName(type)) {
       const leftMost = getLeftMostEntityName(type);
-      //$todo Flow has problems when switching variables instead of literals
       const leftMostSymbol = typeChecker.getSymbolAtLocation(leftMost);
       const decl =
         leftMostSymbol &&
@@ -256,7 +253,6 @@ export function getTypeofFullyQualifiedName(
 
   let isExternalSymbol = false;
   const leftMost = getLeftMostEntityName(type);
-  //$todo Flow has problems when switching variables instead of literals
   const leftMostSymbol = typeChecker.getSymbolAtLocation(leftMost);
   const decl = leftMostSymbol ? leftMostSymbol.declarations[0] : null;
   isExternalSymbol =
@@ -568,7 +564,6 @@ export const printType = withEnv(
       case ts.SyntaxKind.QualifiedName: {
         let symbol;
         if (checker.current) {
-          //$todo
           symbol = checker.current.getSymbolAtLocation(type);
         }
         return getFullyQualifiedName(symbol, type);
@@ -582,11 +577,9 @@ export const printType = withEnv(
         if (checker.current) {
           symbol = checker.current.getSymbolAtLocation(type.typeName);
 
-          //$todo
           fixDefaultTypeArguments(symbol, type);
           const isRenamed = renames(symbol, type);
           if (!isRenamed) {
-            //$todo weird union errors
             // @ts-expect-error todo(flow->ts)
             type.typeName.escapedText = getFullyQualifiedName(
               symbol,
@@ -642,7 +635,6 @@ export const printType = withEnv(
       case ts.SyntaxKind.PropertyDeclaration:
         return printers.declarations.propertyDeclaration(type, keywordPrefix);
 
-      //$todo some weird union errors
       case ts.SyntaxKind.OptionalType:
         return `${printType(type.type)} | void`;
       case ts.SyntaxKind.TupleType: {
@@ -668,7 +660,6 @@ export const printType = withEnv(
 
       case ts.SyntaxKind.PropertyAccessExpression:
         return getFullyQualifiedPropertyAccessExpression(
-          //$todo some weird union errors
           checker.current.getSymbolAtLocation(type),
           type,
         );
@@ -768,7 +759,6 @@ export const printType = withEnv(
         return "new " + printers.functions.functionType(type, true);
 
       case ts.SyntaxKind.TypeQuery: {
-        //$todo some weird union errors
         const symbol = checker.current.getSymbolAtLocation(type.exprName);
         return "typeof " + getTypeofFullyQualifiedName(symbol, type.exprName);
       }
@@ -785,7 +775,6 @@ export const printType = withEnv(
 
       case ts.SyntaxKind.ImportSpecifier:
         if (checker.current) {
-          //$todo some weird union errors
           const symbol = checker.current.getSymbolAtLocation(type.name);
           renames(symbol, type);
         }

@@ -67,7 +67,6 @@ const transformFile = (
   options?: Options,
 ) => {
   const transformedAst = transform(
-    //$todo Flow has problems when switching variables instead of literals
     createSourceFile(fileName, sourceText, languageVersion, true),
     getTransformers(options),
     compilerOptions,

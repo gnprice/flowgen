@@ -26,11 +26,8 @@ export class Factory {
   };
 
   constructor() {
-    //$todo
     this._modules = Object.create(null);
-    //$todo
     this._propDeclarations = Object.create(null);
-    //$todo
     this._functionDeclarations = Object.create(null);
   }
 

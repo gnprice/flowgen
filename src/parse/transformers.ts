@@ -27,24 +27,19 @@ export function importEqualsTransformer /*opts?: Opts*/() {
             node.moduleReference.expression.text,
           );
           const importNode = updatePos(
-            //$todo Flow has problems when switching variables instead of literals
             ts.createImportDeclaration(
               undefined,
               undefined,
-              //$todo Flow has problems when switching variables instead of literals
               updatePos(importClause),
-              //$todo Flow has problems when switching variables instead of literals
               updatePos(moduleSpecifier),
             ),
           );
           return importNode;
         } else if (node.moduleReference.kind === ts.SyntaxKind.QualifiedName) {
           const varNode = updatePos(
-            //$todo Flow has problems when switching variables instead of literals
             ts.createVariableStatement(node.modifiers, [
               ts.createVariableDeclaration(
                 node.name,
-                //$todo Flow has problems when switching variables instead of literals
                 ts.createTypeQueryNode(node.moduleReference),
                 undefined,
               ),

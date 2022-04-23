@@ -19,7 +19,6 @@ class Node<NodeType extends ts.Node = ts.Node> {
   isValue?: boolean;
 
   constructor(node?: NodeType | null) {
-    //$off
     this.children = Object.create(null);
 
     if (node !== null) {
