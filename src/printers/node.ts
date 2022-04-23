@@ -113,12 +113,14 @@ function printPropertyAccessExpression(
 
 function getLeftMostPropertyAccessExpression(
   type: ts.PropertyAccessExpression | ts.Identifier,
-): ts.Identifier {
+): ts.Identifier | void {
   if (type.kind === ts.SyntaxKind.PropertyAccessExpression) {
     // @ts-expect-error todo(flow->ts)
     return getLeftMostPropertyAccessExpression(type.expression);
   } else if (type.kind === ts.SyntaxKind.Identifier) {
     return type;
+  } else {
+    return undefined;
   }
 }
 
