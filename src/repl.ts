@@ -36,11 +36,26 @@
    > el.symbol.declarations[0] === el
    true
 
-     // TODO but the actual import isn't working, hmmm:
+     // hooray, import works!
    > fb.resolvedModules
-   Map(1) { './a' => undefined }
+   Map(1) {
+     './a' => {
+       resolvedFileName: '/tmp/2xt67quttrs/a.ts',
+       originalPath: undefined,
+       extension: '.ts',
+       isExternalLibraryImport: false,
+       packageId: undefined
+     }
+   }
+     // TODO write more here
 
+     // The symbol at the `propertyName` has its declaration back in `a.ts`:
+   > ch.getSymbolAtLocation(el.propertyName).declarations[0] === fa.statements[0]
+   true
 
+     // That symbol's parent is the symbol for the `a.ts` module itself:
+   > ch.getSymbolAtLocation(el.propertyName).parent === fa.symbol
+   true
 
  */
 import os from "os";
@@ -62,8 +77,13 @@ export function quickProgram(
   );
 
   const compilerHost = ts.createCompilerHost({}, true);
+  const oldDirectoryExists = compilerHost.directoryExists;
   const oldFileExists = compilerHost.fileExists;
   const oldSourceFile = compilerHost.getSourceFile;
+  compilerHost.directoryExists = path => {
+    // TODO extend to handle subdirectories
+    return path === basePath || oldDirectoryExists(path);
+  };
   compilerHost.fileExists = fileName => {
     return map.has(fileName) || oldFileExists(fileName);
   };
@@ -75,8 +95,12 @@ export function quickProgram(
     return oldSourceFile(file, languageVersion);
   };
 
-  // @ts-expect-error iterating an iterator
-  const program = ts.createProgram([...map.keys()], {}, compilerHost);
+  const program = ts.createProgram(
+    // @ts-expect-error iterating an iterator
+    [...map.keys()],
+    {}, // { traceResolution: true },
+    compilerHost,
+  );
   return [
     program.getTypeChecker(),
     new Map(
