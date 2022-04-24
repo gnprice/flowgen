@@ -152,12 +152,9 @@ export function getFullyQualifiedPropertyAccessExpression(
   const leftMost = getLeftMostPropertyAccessExpression(type);
   if (leftMost) {
     const leftMostSymbol = typeChecker.getSymbolAtLocation(leftMost);
-    isExternalSymbol = some(
-      leftMostSymbol?.declarations,
-      decl =>
-        decl.kind === ts.SyntaxKind.NamespaceImport ||
-        decl.kind === ts.SyntaxKind.NamedImports,
-    );
+    isExternalSymbol = some(leftMostSymbol?.declarations, decl => {
+      return ts.isNamespaceImport(decl) || ts.isNamedImports(decl);
+    });
   }
   if (!symbol || typeChecker.isUnknownSymbol(symbol) || isExternalSymbol) {
     return printPropertyAccessExpression(type);
@@ -199,13 +196,13 @@ export function getFullyQualifiedName(
     const leftMost = getLeftMostEntityName(type);
     const leftMostSymbol = typeChecker.getSymbolAtLocation(leftMost);
     isExternalSymbol =
-      some(
-        leftMostSymbol?.declarations,
-        decl =>
-          decl.kind === ts.SyntaxKind.NamespaceImport ||
-          decl.kind === ts.SyntaxKind.NamedImports ||
-          decl.kind === ts.SyntaxKind.TypeParameter,
-      ) || leftMostSymbol?.parent?.escapedName === "__global";
+      some(leftMostSymbol?.declarations, decl => {
+        return (
+          ts.isNamespaceImport(decl) ||
+          ts.isNamedImports(decl) ||
+          ts.isTypeParameterDeclaration(decl)
+        );
+      }) || leftMostSymbol?.parent?.escapedName === "__global";
   }
   if (!symbol || typeChecker.isUnknownSymbol(symbol) || isExternalSymbol) {
     return printEntityName(type);
@@ -241,12 +238,9 @@ export function getTypeofFullyQualifiedName(
   let isExternalSymbol = false;
   const leftMost = getLeftMostEntityName(type);
   const leftMostSymbol = typeChecker.getSymbolAtLocation(leftMost);
-  isExternalSymbol = some(
-    leftMostSymbol?.declarations,
-    decl =>
-      decl.kind === ts.SyntaxKind.NamespaceImport ||
-      decl.kind === ts.SyntaxKind.NamedImports,
-  );
+  isExternalSymbol = some(leftMostSymbol?.declarations, decl => {
+    return ts.isNamespaceImport(decl) || ts.isNamedImports(decl);
+  });
   if (!symbol || typeChecker.isUnknownSymbol(symbol) || isExternalSymbol) {
     return printEntityName(type);
   }
