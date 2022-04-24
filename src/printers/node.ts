@@ -579,16 +579,7 @@ export const printType = withEnv(
           symbol = checker.current.getSymbolAtLocation(type.typeName);
 
           fixDefaultTypeArguments(symbol, type);
-          const isRenamed = renames(symbol, type);
-          if (!isRenamed) {
-            console.log(type.typeName);
-            // @ts-expect-error todo(flow->ts)
-            type.typeName.escapedText = getFullyQualifiedName(
-              symbol,
-              type.typeName,
-            );
-            console.log(type.typeName);
-          }
+          renames(symbol, type);
 
           const getAdjustedType = targetSymbol => {
             const isTypeImport =
