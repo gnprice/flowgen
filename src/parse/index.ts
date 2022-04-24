@@ -13,11 +13,7 @@ const collectModuleDeclaration = (
   context: Node,
   factory: Factory,
 ): void => {
-  if (
-    // @ts-expect-error
-    node.flags === 4098 ||
-    (node.flags & ts.NodeFlags.Namespace) === ts.NodeFlags.Namespace
-  ) {
+  if (node.flags & ts.NodeFlags.Namespace) {
     if (
       (node.flags & ts.NodeFlags.GlobalAugmentation) ===
       ts.NodeFlags.GlobalAugmentation
