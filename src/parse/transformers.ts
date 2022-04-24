@@ -11,6 +11,13 @@ function updatePos<T extends ts.Node>(node: T) {
   return node;
 }
 
+/**
+ * Transform away `import x = …` statements.
+ *
+ * `import x = require('y')` becomes `import * as x from 'y'`.
+ *
+ * `import x = y.z` becomes `var x: typeof y.z`.
+ */
 export function importEqualsTransformer /*opts?: Opts*/() {
   function visitor(ctx: ts.TransformationContext) {
     const visitor: ts.Visitor = (node: ts.Node): ts.VisitResult<ts.Node> => {
@@ -18,13 +25,20 @@ export function importEqualsTransformer /*opts?: Opts*/() {
         if (
           node.moduleReference.kind === ts.SyntaxKind.ExternalModuleReference
         ) {
+          // The declaration is of the form `import x = require('y')`.
+          // Generate `import * as x from 'y'`.
           const importClause = ts.createImportClause(
             undefined,
             ts.createNamespaceImport(ts.createIdentifier(node.name.text)),
           );
           const moduleSpecifier = ts.createLiteral(
-            // @ts-expect-error todo(flow->ts)
-            node.moduleReference.expression.text,
+            // The expression is always a string literal.  This isn't stated
+            // on the `ExternalModuleReference` type; but it's done the same
+            // way on the module specifier on `ImportDeclaration`, and the
+            // comment in parseModuleSpecifier (called by
+            // parseExternalModuleReference) in TS's src/compiler/parser.ts
+            // says it gets checked in the grammar check pass.
+            (node.moduleReference.expression as ts.StringLiteral).text,
           );
           const importNode = updatePos(
             ts.createImportDeclaration(
@@ -36,6 +50,9 @@ export function importEqualsTransformer /*opts?: Opts*/() {
           );
           return importNode;
         } else if (node.moduleReference.kind === ts.SyntaxKind.QualifiedName) {
+          // The declaration is of the form `import x = y.z`.  Docs:
+          //   https://www.typescriptlang.org/docs/handbook/namespaces.html#aliases
+          // Generate `var x: typeof y.z`.
           const varNode = updatePos(
             ts.createVariableStatement(node.modifiers, [
               ts.createVariableDeclaration(
@@ -47,6 +64,8 @@ export function importEqualsTransformer /*opts?: Opts*/() {
           );
           return varNode;
         }
+        // TODO: What if node.moduleReference is a ts.Identifier?
+        //   Probably should treat that the same as a QualifiedName.
       }
       return ts.visitEachChild(node, visitor, ctx);
     };
@@ -57,18 +76,34 @@ export function importEqualsTransformer /*opts?: Opts*/() {
   };
 }
 
+/**
+ * Convert legacy `module foo` syntax to `namespace foo`.
+ *
+ * These mean the same thing.  The `module` form is the legacy form from
+ * before TypeScript 1.5.  Upstream docs:
+ *   https://www.typescriptlang.org/docs/handbook/namespaces.html
+ */
 export function legacyModules() {
   function visitor(ctx: ts.TransformationContext) {
     const visitor: ts.Visitor = (node: ts.Node): ts.VisitResult<ts.Node> => {
       stripDetailsFromTree(node);
+
       if (ts.isModuleDeclaration(node)) {
         if (node.name.kind === ts.SyntaxKind.Identifier) {
+          // This is a `module foo` or `namespace foo`.  Make it the latter.
+
           // @ts-expect-error todo: modifying "readonly" property
           node.flags |= ts.NodeFlags.Namespace;
+        } else {
+          // This is an "ambient external module declaration", with syntax
+          // `module 'foo'` (a string literal rather than an identifier.)
+          // Do nothing.
         }
+
         visitor(node.body);
         return node;
       }
+
       return ts.visitEachChild(node, visitor, ctx);
     };
     return visitor;
