@@ -15,13 +15,29 @@ declare var n: typeof npm$namespace$n;
 
 declare var npm$namespace$n: {|
   x: typeof n$x,
+  nn: typeof npm$namespace$n$nn,
+  mm: typeof npm$namespace$n$mm,
 |};
 declare export var n$x: {
   y: number,
   ...
 };
+
+declare var npm$namespace$n$nn: {|
+  x: typeof n$nn$x,
+|};
+declare export var n$nn$x: number;
+
+declare var npm$namespace$n$mm: {|
+  x: typeof n$mm$x,
+|};
+declare export var n$mm$x: number;
 export type N = typeof n;
 export type Nx = typeof n.x;
 export type Nxy = typeof n.x.y;
+export type Nnn = typeof n.nn;
+export type Nmm = typeof n.mm;
+export type Nnnx = typeof n.nn.x;
+export type Nmmx = typeof n.mm.x;
 "
 `;
