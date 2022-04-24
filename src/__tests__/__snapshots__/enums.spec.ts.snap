@@ -14,11 +14,11 @@ declare var npm$namespace$n: {|
   E: typeof n$E,
 |};
 
-declare var n$E: {|
+declare export var n$E: {|
   +EM: 0, // 0
 |};
-declare type AA = n$E;
-declare type BB = n$E.EM;
+declare type AA = $Values<typeof n$E>;
+declare type BB = typeof n$E.EM;
 "
 `;
 

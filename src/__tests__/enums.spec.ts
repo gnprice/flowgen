@@ -18,7 +18,7 @@ type A = Label
 type B = Label.LABEL_OPTIONAL
 
 // Including enums in namespaces.
-namespace n { enum E { EM } }
+namespace n { export enum E { EM } }
 type AA = n.E;
 type BB = n.E.EM;
 `;
