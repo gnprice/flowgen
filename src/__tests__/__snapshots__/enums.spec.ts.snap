@@ -82,9 +82,11 @@ import {
   LLabel as LLabelR,
 } from \\"./reexport-enum-file\\";
 declare export function foo(label: $Values<typeof Label>): void;
+export type WM = typeof Label.A;
 export type X = typeof Label.A;
 export type Y = $Values<typeof Label>;
 export type WR = $Values<typeof Label>;
+export type WRM = typeof Label.A;
 export type XR = typeof Label.A;
 export type YR = $Values<typeof Label>;
 "
