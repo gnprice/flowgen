@@ -568,12 +568,13 @@ export const printType = withEnv(
         fixDefaultTypeArguments(symbol, type);
         renames(symbol, type);
 
+        const isTypeImport =
+          symbol &&
+          symbol.declarations &&
+          symbol.declarations[0] &&
+          ts.isTypeOnlyImportOrExportDeclaration(symbol.declarations[0]);
+
         const getAdjustedType = targetSymbol => {
-          const isTypeImport =
-            symbol &&
-            symbol.declarations &&
-            symbol.declarations[0] &&
-            ts.isTypeOnlyImportOrExportDeclaration(symbol.declarations[0]);
           if (
             targetSymbol &&
             targetSymbol.declarations &&
