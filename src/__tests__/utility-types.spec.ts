@@ -44,3 +44,17 @@ type C = Omit<O, U>;
   expect(beautify(result)).toMatchSnapshot();
   expect(result).toBeValidFlowTypeDeclarations();
 });
+
+it("should munge only the genuine utility types, not shadowing names", () => {
+  const ts = `
+import { Record } from './foo/util.js';
+type R = Record<'x', number>;
+type Omit = number;
+type T = Omit;
+type Partial<T> = T | void;
+type S = Partial<string>;
+`;
+  const result = compiler.compileDefinitionString(ts, { quiet: true });
+  expect(beautify(result)).toMatchSnapshot();
+  // expect(result).toBeValidFlowTypeDeclarations();  // needs import
+});
