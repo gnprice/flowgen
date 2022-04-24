@@ -117,7 +117,11 @@ export function quickSourceFile(
   return [checker, sourceFiles.get("file.ts")];
 }
 
-const r = repl.start();
+const r = repl.start({
+  // @ts-expect-error historySize is in fact accepted; see e.g. implementation:
+  //   https://github.com/nodejs/node/blob/v18.0.0/lib/repl.js#L768
+  historySize: 1000,
+});
 
 // Share history with the plain `node` REPL.
 r.setupHistory(path.join(os.homedir(), ".node_repl_history"), () => undefined);
