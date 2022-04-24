@@ -59,7 +59,7 @@ export class Factory {
     if (context instanceof ModuleNode) {
       name = context.name + "$" + rawName;
     }
-    if (context instanceof NamespaceNode && checker.current) {
+    if (context instanceof NamespaceNode) {
       const symbol = checker.current.getSymbolAtLocation(node.name);
       name = getFullyQualifiedName(symbol, node);
     }
@@ -96,7 +96,7 @@ export class Factory {
     if (context instanceof ModuleNode) {
       name = context.name + "$" + name;
     }
-    if (context instanceof NamespaceNode && checker.current) {
+    if (context instanceof NamespaceNode) {
       const symbol = checker.current.getSymbolAtLocation(node.name);
       name = getFullyQualifiedName(symbol, node);
     }
@@ -126,7 +126,7 @@ export class Factory {
     if (context instanceof ModuleNode) {
       contextName = context.name + "$" + name;
     }
-    if (context instanceof NamespaceNode && checker.current) {
+    if (context instanceof NamespaceNode) {
       const symbol = checker.current.getSymbolAtLocation(node.name);
       contextName = getFullyQualifiedName(symbol, node);
     }

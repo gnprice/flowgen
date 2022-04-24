@@ -146,9 +146,6 @@ export function getFullyQualifiedPropertyAccessExpression(
   type: ts.PropertyAccessExpression | ts.Identifier,
 ): string {
   const typeChecker = checker.current;
-  if (!typeChecker) {
-    return printPropertyAccessExpression(type);
-  }
 
   let isExternalSymbol = false;
   const leftMost = getLeftMostPropertyAccessExpression(type);
@@ -195,9 +192,6 @@ export function getFullyQualifiedName(
 ): string {
   // console.log({ symbol, type });
   const typeChecker = checker.current;
-  if (!typeChecker) {
-    return printEntityName(type);
-  }
 
   let isExternalSymbol = false;
   if (ts.isEntityName(type)) {
@@ -246,9 +240,6 @@ export function getTypeofFullyQualifiedName(
   type: ts.EntityName,
 ): string {
   const typeChecker = checker.current;
-  if (!typeChecker) {
-    return printEntityName(type);
-  }
 
   let isExternalSymbol = false;
   const leftMost = getLeftMostEntityName(type);
@@ -354,6 +345,8 @@ export const printType = withEnv(
 
     // @ts-expect-error todo(flow->ts)
     const type: PrintNode = rawType;
+
+    if (!checker.current) printErrorType("no typechecker", type as ts.Node);
 
     const keywordPrefix: string =
       // @ts-expect-error todo(flow->ts)
@@ -563,10 +556,7 @@ export const printType = withEnv(
         return printers.common.literalType(type);
 
       case ts.SyntaxKind.QualifiedName: {
-        let symbol;
-        if (checker.current) {
-          symbol = checker.current.getSymbolAtLocation(type);
-        }
+        const symbol = checker.current.getSymbolAtLocation(type);
         return getFullyQualifiedName(symbol, type);
       }
 
@@ -574,53 +564,47 @@ export const printType = withEnv(
         return JSON.stringify(type.text);
 
       case ts.SyntaxKind.TypeReference: {
-        let symbol;
-        if (checker.current) {
-          symbol = checker.current.getSymbolAtLocation(type.typeName);
+        const symbol = checker.current.getSymbolAtLocation(type.typeName);
+        fixDefaultTypeArguments(symbol, type);
+        renames(symbol, type);
 
-          fixDefaultTypeArguments(symbol, type);
-          renames(symbol, type);
-
-          const getAdjustedType = targetSymbol => {
-            const isTypeImport =
-              symbol &&
-              symbol.declarations &&
-              symbol.declarations[0] &&
-              ts.isTypeOnlyImportOrExportDeclaration(symbol.declarations[0]);
-            if (
-              targetSymbol &&
-              targetSymbol.declarations &&
-              targetSymbol.declarations[0].kind === ts.SyntaxKind.EnumMember
-            ) {
-              return `${isTypeImport ? "" : "typeof"}
-                ${getTypeofFullyQualifiedName(targetSymbol, type.typeName)}`;
-            } else if (
-              targetSymbol &&
-              targetSymbol.declarations &&
-              targetSymbol.declarations[0].kind ===
-                ts.SyntaxKind.EnumDeclaration
-            ) {
-              return `$Values<
-                ${isTypeImport ? "" : "typeof "}
-                ${getTypeofFullyQualifiedName(targetSymbol, type.typeName)}>`;
-            }
-            return printers.declarations.typeReference(type, !targetSymbol);
-          };
-
-          // if importing an enum, we have to change how the type is used across the file
-          if (
+        const getAdjustedType = targetSymbol => {
+          const isTypeImport =
             symbol &&
             symbol.declarations &&
-            symbol.declarations[0].kind === ts.SyntaxKind.ImportSpecifier
+            symbol.declarations[0] &&
+            ts.isTypeOnlyImportOrExportDeclaration(symbol.declarations[0]);
+          if (
+            targetSymbol &&
+            targetSymbol.declarations &&
+            targetSymbol.declarations[0].kind === ts.SyntaxKind.EnumMember
           ) {
-            return getAdjustedType(
-              checker.current.getTypeAtLocation(type).symbol,
-            );
-          } else {
-            return getAdjustedType(symbol);
+            return `${isTypeImport ? "" : "typeof"}
+                ${getTypeofFullyQualifiedName(targetSymbol, type.typeName)}`;
+          } else if (
+            targetSymbol &&
+            targetSymbol.declarations &&
+            targetSymbol.declarations[0].kind === ts.SyntaxKind.EnumDeclaration
+          ) {
+            return `$Values<
+                ${isTypeImport ? "" : "typeof "}
+                ${getTypeofFullyQualifiedName(targetSymbol, type.typeName)}>`;
           }
+          return printers.declarations.typeReference(type, !targetSymbol);
+        };
+
+        // if importing an enum, we have to change how the type is used across the file
+        if (
+          symbol &&
+          symbol.declarations &&
+          symbol.declarations[0].kind === ts.SyntaxKind.ImportSpecifier
+        ) {
+          return getAdjustedType(
+            checker.current.getTypeAtLocation(type).symbol,
+          );
+        } else {
+          return getAdjustedType(symbol);
         }
-        return printers.declarations.typeReference(type, !symbol);
       }
 
       case ts.SyntaxKind.VariableDeclaration:
@@ -767,12 +751,11 @@ export const printType = withEnv(
       case ts.SyntaxKind.ParenthesizedType:
         return `(${printType(type.type)})`;
 
-      case ts.SyntaxKind.ImportSpecifier:
-        if (checker.current) {
-          const symbol = checker.current.getSymbolAtLocation(type.name);
-          renames(symbol, type);
-        }
+      case ts.SyntaxKind.ImportSpecifier: {
+        const symbol = checker.current.getSymbolAtLocation(type.name);
+        renames(symbol, type);
         return printers.relationships.importExportSpecifier(type);
+      }
 
       case ts.SyntaxKind.ExportSpecifier:
         return printers.relationships.importExportSpecifier(type);

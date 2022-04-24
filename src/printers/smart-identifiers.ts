@@ -46,21 +46,18 @@ const setGlobalName = (
       to: ts.createIdentifier("React$Node"),
     },
   ];
-  if (checker.current) {
-    const bools = [];
-    for (const { from, to } of globals) {
-      if (
-        ts.isQualifiedName(type.typeName) &&
-        compareQualifiedName(type.typeName, from)
-      ) {
-        // @ts-expect-error readonly property, but we write to it
-        type.typeName = to;
-        bools.push(true);
-      }
+  const bools = [];
+  for (const { from, to } of globals) {
+    if (
+      ts.isQualifiedName(type.typeName) &&
+      compareQualifiedName(type.typeName, from)
+    ) {
+      // @ts-expect-error readonly property, but we write to it
+      type.typeName = to;
+      bools.push(true);
     }
-    return bools.length > 0;
   }
-  return false;
+  return bools.length > 0;
 };
 
 export function renames(
@@ -75,12 +72,10 @@ export function renames(
     setImportedName(decl.name.escapedText, decl.name, symbol, decl);
   } else if (type.kind === ts.SyntaxKind.TypeReference) {
     const leftMost = getLeftMostEntityName(type.typeName);
-    if (checker.current) {
-      const leftMostSymbol = checker.current.getSymbolAtLocation(leftMost);
-      const isGlobal = leftMostSymbol?.parent?.escapedName === "__global";
-      if (isGlobal) {
-        return setGlobalName(type, symbol);
-      }
+    const leftMostSymbol = checker.current.getSymbolAtLocation(leftMost);
+    const isGlobal = leftMostSymbol?.parent?.escapedName === "__global";
+    if (isGlobal) {
+      return setGlobalName(type, symbol);
     }
     if (ts.isQualifiedName(type.typeName)) {
       return setImportedName(
