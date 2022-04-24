@@ -247,12 +247,12 @@ export function getTypeofFullyQualifiedName(
   }
 
   // console.log({ type, symbol });
-  console.log(
-    symbol.flags,
-    ts.SymbolFlags[symbol.flags],
-    ts.SyntaxKind[symbol?.parent?.valueDeclaration?.kind],
-    symbol?.parent?.valueDeclaration?.flags,
-  );
+  // console.log(
+  //   symbol.flags,
+  //   ts.SymbolFlags[symbol.flags],
+  //   ts.SyntaxKind[symbol?.parent?.valueDeclaration?.kind],
+  //   symbol?.parent?.valueDeclaration?.flags,
+  // );
 
   if (symbol.flags & ts.SymbolFlags.TypeLiteral) {
     // This is a type literal.  Try to find a name for it.
