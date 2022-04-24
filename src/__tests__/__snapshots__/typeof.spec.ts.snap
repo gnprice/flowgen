@@ -21,7 +21,7 @@ declare export var n$x: {
   ...
 };
 export type N = typeof n;
-export type Nx = typeof n$x;
-export type Nxy = typeof n$x.y;
+export type Nx = typeof n.x;
+export type Nxy = typeof n.x.y;
 "
 `;

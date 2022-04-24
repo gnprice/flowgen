@@ -17,8 +17,8 @@ declare var npm$namespace$n: {|
 declare export var n$E: {|
   +EM: 0, // 0
 |};
-declare type AA = $Values<typeof n$E>;
-declare type BB = typeof n$E.EM;
+declare type AA = $Values<typeof n.E>;
+declare type BB = typeof n.E.EM;
 "
 `;
 

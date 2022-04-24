@@ -229,6 +229,7 @@ export function getFullyQualifiedName(
   return result;
 }
 
+/** A name to refer to a value, for use under a `typeof`. */
 export function getTypeofFullyQualifiedName(
   symbol: ts.Symbol | undefined,
   type: ts.EntityName,
@@ -261,10 +262,13 @@ export function getTypeofFullyQualifiedName(
     return typeChecker.symbolToString(symbol);
   }
 
-  const delimiter =
-    symbol.flags & (ts.SymbolFlags.EnumMember | ts.SymbolFlags.ClassMember)
-      ? "."
-      : "$";
+  // For referring to a value (which is how this function's job differs from
+  // those of its siblings), we always want property access to translate to
+  // a normal property access syntax, with `.` -- even when the left-hand
+  // side is a namespace.  After all, that's how normal JS code will access
+  // the same values.
+  const delimiter = ".";
+
   return (
     getTypeofFullyQualifiedName(symbol.parent, type) +
     delimiter +
