@@ -2,6 +2,7 @@ import Node from "./node";
 import * as printers from "../printers";
 import { checker } from "../checker";
 import * as ts from "typescript";
+import { some } from "../util";
 
 export default class Import extends Node<ts.ImportDeclaration> {
   constructor(node: ts.ImportDeclaration) {
@@ -33,11 +34,7 @@ export default class Import extends Node<ts.ImportDeclaration> {
             continue;
           }
           const elemSymbol = checker.current.getTypeAtLocation(elem).symbol;
-          const isEnum =
-            elemSymbol &&
-            elemSymbol.declarations &&
-            elemSymbol.declarations[0].kind === ts.SyntaxKind.EnumDeclaration;
-          if (isEnum) {
+          if (some(elemSymbol?.declarations, ts.isEnumDeclaration)) {
             enumElems.push(elem);
           } else {
             regularElems.push(elem);

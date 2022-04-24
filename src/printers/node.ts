@@ -8,6 +8,7 @@ import { withEnv } from "../env";
 import { renames, getLeftMostEntityName } from "./smart-identifiers";
 import { printErrorMessage } from "../errors/error-message";
 import { opts } from "../options";
+import { some } from "../util";
 
 type ExpectedKeywordKind =
   | ts.SyntaxKind.AnyKeyword
@@ -151,12 +152,12 @@ export function getFullyQualifiedPropertyAccessExpression(
   const leftMost = getLeftMostPropertyAccessExpression(type);
   if (leftMost) {
     const leftMostSymbol = typeChecker.getSymbolAtLocation(leftMost);
-    if (leftMostSymbol) {
-      const decl = leftMostSymbol.declarations[0];
-      isExternalSymbol =
+    isExternalSymbol = some(
+      leftMostSymbol?.declarations,
+      decl =>
         decl.kind === ts.SyntaxKind.NamespaceImport ||
-        decl.kind === ts.SyntaxKind.NamedImports;
-    }
+        decl.kind === ts.SyntaxKind.NamedImports,
+    );
   }
   if (!symbol || typeChecker.isUnknownSymbol(symbol) || isExternalSymbol) {
     return printPropertyAccessExpression(type);
@@ -197,18 +198,14 @@ export function getFullyQualifiedName(
   if (ts.isEntityName(type)) {
     const leftMost = getLeftMostEntityName(type);
     const leftMostSymbol = typeChecker.getSymbolAtLocation(leftMost);
-    const decl =
-      leftMostSymbol &&
-      leftMostSymbol.declarations &&
-      leftMostSymbol.declarations.length
-        ? leftMostSymbol.declarations[0]
-        : null;
     isExternalSymbol =
-      (decl &&
-        (decl.kind === ts.SyntaxKind.NamespaceImport ||
+      some(
+        leftMostSymbol?.declarations,
+        decl =>
+          decl.kind === ts.SyntaxKind.NamespaceImport ||
           decl.kind === ts.SyntaxKind.NamedImports ||
-          decl.kind === ts.SyntaxKind.TypeParameter)) ||
-      leftMostSymbol?.parent?.escapedName === "__global";
+          decl.kind === ts.SyntaxKind.TypeParameter,
+      ) || leftMostSymbol?.parent?.escapedName === "__global";
   }
   if (!symbol || typeChecker.isUnknownSymbol(symbol) || isExternalSymbol) {
     return printEntityName(type);
@@ -244,11 +241,12 @@ export function getTypeofFullyQualifiedName(
   let isExternalSymbol = false;
   const leftMost = getLeftMostEntityName(type);
   const leftMostSymbol = typeChecker.getSymbolAtLocation(leftMost);
-  const decl = leftMostSymbol ? leftMostSymbol.declarations[0] : null;
-  isExternalSymbol =
-    decl &&
-    (decl.kind === ts.SyntaxKind.NamespaceImport ||
-      decl.kind === ts.SyntaxKind.NamedImports);
+  isExternalSymbol = some(
+    leftMostSymbol?.declarations,
+    decl =>
+      decl.kind === ts.SyntaxKind.NamespaceImport ||
+      decl.kind === ts.SyntaxKind.NamedImports,
+  );
   if (!symbol || typeChecker.isUnknownSymbol(symbol) || isExternalSymbol) {
     return printEntityName(type);
   }
@@ -309,14 +307,14 @@ export function fixDefaultTypeArguments(
   symbol: ts.Symbol | undefined,
   type: ts.ExpressionWithTypeArguments | ts.TypeReferenceNode,
 ): void {
-  if (!symbol) return;
-  if (!symbol.declarations) return;
-  const decl = symbol.declarations[0];
-  const allTypeParametersHaveDefaults =
-    // @ts-expect-error todo(flow->ts)
-    !!decl?.typeParameters?.length &&
-    // @ts-expect-error todo(flow->ts)
-    decl.typeParameters.every(param => !!param.default);
+  const allTypeParametersHaveDefaults = some(
+    symbol?.declarations,
+    decl =>
+      // @ts-expect-error todo(flow->ts)
+      !!decl?.typeParameters?.length &&
+      // @ts-expect-error todo(flow->ts)
+      decl.typeParameters.every(param => !!param.default),
+  );
   if (allTypeParametersHaveDefaults && !type.typeArguments) {
     // @ts-expect-error assigning to read-only property
     type.typeArguments = [];
@@ -568,34 +566,21 @@ export const printType = withEnv(
         fixDefaultTypeArguments(symbol, type);
         renames(symbol, type);
 
-        const isTypeImport =
-          symbol &&
-          symbol.declarations &&
-          symbol.declarations[0] &&
-          ts.isTypeOnlyImportOrExportDeclaration(symbol.declarations[0]);
+        const isTypeImport = some(
+          symbol?.declarations,
+          ts.isTypeOnlyImportOrExportDeclaration,
+        );
 
         // console.log(symbol);
-        if (
-          symbol &&
-          symbol.declarations &&
-          symbol.declarations[0].kind === ts.SyntaxKind.ImportSpecifier
-        ) {
+        if (some(symbol?.declarations, ts.isImportSpecifier)) {
           symbol = checker.current.getTypeAtLocation(type).symbol;
         }
 
         // if importing an enum, we have to change how the type is used across the file
-        if (
-          symbol &&
-          symbol.declarations &&
-          symbol.declarations[0].kind === ts.SyntaxKind.EnumMember
-        ) {
+        if (some(symbol?.declarations, ts.isEnumMember)) {
           return `${isTypeImport ? "" : "typeof"}
                 ${getTypeofFullyQualifiedName(symbol, type.typeName)}`;
-        } else if (
-          symbol &&
-          symbol.declarations &&
-          symbol.declarations[0].kind === ts.SyntaxKind.EnumDeclaration
-        ) {
+        } else if (some(symbol?.declarations, ts.isEnumDeclaration)) {
           return `$Values<
                 ${isTypeImport ? "" : "typeof "}
                 ${getTypeofFullyQualifiedName(symbol, type.typeName)}>`;
