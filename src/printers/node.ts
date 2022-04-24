@@ -567,7 +567,20 @@ export const printType = withEnv(
 
       case ts.SyntaxKind.TypeReference: {
         let symbol = checker.current.getSymbolAtLocation(type.typeName);
+        console.log(type, symbol);
         if (!symbol) {
+          // Hmmmm.  Why is this the path taken when this really is a
+          // reference to some TS stdlib type, like `Omit`?  For example,
+          // we get this in a test in utility-types.spec.ts, with:
+          //   type A = Omit<{ a: string, b: number }, "a">
+          // But if I do what seems the exact same thing in the repl:
+          //   $ node lib/repl.js
+          //   > [ch, f] = quickSourceFile(`type A = Omit<{ a: string, b: number }, "a">`); t = f.statements[0].type; 1
+          //   > s = ch.getSymbolAtLocation(t.typeName); !!s
+          //   true
+          // then there is indeed a symbol.  And it is from the default lib:
+          //   > ff = s.declarations[0].getSourceFile(); ff.hasNoDefaultLib
+          //   true
           return printers.declarations.typeReference(type, true);
         }
 

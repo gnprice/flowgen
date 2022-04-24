@@ -59,3 +59,13 @@ declare type E2<T> = $Call<<R>((...args: any[]) => R) => R, () => T>;
 declare type F2<T, U> = { [key: T]: U, ... };
 "
 `;
+
+exports[`should munge only the genuine utility types, not shadowing names 1`] = `
+"import { Record } from \\"./foo/util.js\\";
+declare type R = { x: number, ... };
+declare type Omit = number;
+declare type T = Omit;
+declare type Partial<T> = T | void;
+declare type S = Partial<string>;
+"
+`;
