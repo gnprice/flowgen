@@ -22,6 +22,13 @@ namespace n { export enum E { EM } }
 type AA = n.E;
 type BB = n.E.EM;
 
+// TODO: This breaks; the first declaration gets lost.  Should merge instead.
+// // Including enums with multiple declarations.
+// enum ED { A, B }
+// // enum ED { C = B + 1, D } // TODO (but not in .d.ts): initializer expression
+// enum ED { C = 2, D }
+// type EDT = ED.A | ED.C | ED.D;
+
 // TODO: This breaks because we generate separate, conflicting declarations of EN.
 // // Including enums that are also namespaces.
 // namespace EN { export const nsmem = 1; export type T = string; }
