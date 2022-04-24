@@ -78,6 +78,7 @@ it("should handle importing enums", () => {
   const results = compiler.compileDefinitionFiles(
     [
       "src/__tests__/snippet/export-enum-file.ts",
+      "src/__tests__/snippet/reexport-enum-file.ts",
       "src/__tests__/snippet/import-enum-file.ts",
     ],
     {

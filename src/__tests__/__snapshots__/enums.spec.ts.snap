@@ -70,10 +70,23 @@ export type LLabel = $Values<typeof Label>;
 `;
 
 exports[`should handle importing enums: class 2`] = `
+"declare export * from \\"./export-enum-file\\";
+"
+`;
+
+exports[`should handle importing enums: class 3`] = `
 "import { Label as ImportedLabel, LabelA, LLabel } from \\"./export-enum-file\\";
+import {
+  Label as ImportedLabelR,
+  LabelA as LabelAR,
+  LLabel as LLabelR,
+} from \\"./reexport-enum-file\\";
 declare export function foo(label: $Values<typeof Label>): void;
 export type X = typeof Label.A;
 export type Y = $Values<typeof Label>;
+export type WR = $Values<typeof Label>;
+export type XR = typeof Label.A;
+export type YR = $Values<typeof Label>;
 "
 `;
 
