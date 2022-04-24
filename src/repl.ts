@@ -94,7 +94,7 @@ export function quickProgram(
   const program = ts.createProgram(
     // @ts-expect-error iterating an iterator
     [...map.keys()],
-    {}, // { traceResolution: true },
+    { target: ts.ScriptTarget.Latest }, // { traceResolution: true },
     compilerHost,
   );
   return [
