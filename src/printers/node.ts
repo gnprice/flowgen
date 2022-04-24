@@ -123,9 +123,8 @@ function getLeftMostPropertyAccessExpression(
 function isModule(node?: ts.Node): boolean {
   if (!node) return false;
   return (
-    node.kind === ts.SyntaxKind.SourceFile ||
-    (node.kind === ts.SyntaxKind.ModuleDeclaration &&
-      (node.flags & ts.NodeFlags.Namespace) === 0)
+    ts.isSourceFile(node) ||
+    (ts.isModuleDeclaration(node) && !ts.isIdentifier(node.name))
   );
 }
 

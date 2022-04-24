@@ -13,7 +13,7 @@ const collectModuleDeclaration = (
   context: Node,
   factory: Factory,
 ): void => {
-  if (node.flags & ts.NodeFlags.Namespace) {
+  if (ts.isIdentifier(node.name)) {
     if (
       (node.flags & ts.NodeFlags.GlobalAugmentation) ===
       ts.NodeFlags.GlobalAugmentation
