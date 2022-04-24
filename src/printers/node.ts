@@ -272,6 +272,11 @@ export function getTypeofFullyQualifiedName(
   );
 }
 
+export function isTsDefaultLib(decl: ts.Node): boolean {
+  // TODO use Program#isSourceFileDefaultLibrary instead; needs keeping Program around
+  return decl.getSourceFile().hasNoDefaultLib;
+}
+
 export function printFlowGenHelper(env: {
   conditionalHelpers?: boolean;
 }): string {
@@ -451,9 +456,14 @@ export const printType = withEnv(
 
       //case SyntaxKind.IdentifierObject:
       //case SyntaxKind.StringLiteralType:
-      case ts.SyntaxKind.Identifier:
-        // @ts-expect-error todo(flow->ts)
-        return printers.identifiers.print(type.text);
+      case ts.SyntaxKind.Identifier: {
+        const symbol = checker.current.getSymbolAtLocation(type);
+        if (some(symbol?.declarations, isTsDefaultLib)) {
+          // @ts-expect-error todo(flow->ts)
+          return printers.identifiers.print(type.text);
+        }
+        return type.text;
+      }
 
       case ts.SyntaxKind.BindingElement:
         // @ts-expect-error todo(flow->ts)
