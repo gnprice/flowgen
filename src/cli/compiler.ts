@@ -49,7 +49,6 @@ const reset = (options?: Options): void => {
 };
 
 const compilerOptions = {
-  noLib: true,
   target: ScriptTarget.Latest,
 };
 
