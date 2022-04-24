@@ -564,7 +564,7 @@ export const printType = withEnv(
         return JSON.stringify(type.text);
 
       case ts.SyntaxKind.TypeReference: {
-        const symbol = checker.current.getSymbolAtLocation(type.typeName);
+        let symbol = checker.current.getSymbolAtLocation(type.typeName);
         fixDefaultTypeArguments(symbol, type);
         renames(symbol, type);
 
@@ -574,38 +574,33 @@ export const printType = withEnv(
           symbol.declarations[0] &&
           ts.isTypeOnlyImportOrExportDeclaration(symbol.declarations[0]);
 
-        const getAdjustedType = targetSymbol => {
-          if (
-            targetSymbol &&
-            targetSymbol.declarations &&
-            targetSymbol.declarations[0].kind === ts.SyntaxKind.EnumMember
-          ) {
-            return `${isTypeImport ? "" : "typeof"}
-                ${getTypeofFullyQualifiedName(targetSymbol, type.typeName)}`;
-          } else if (
-            targetSymbol &&
-            targetSymbol.declarations &&
-            targetSymbol.declarations[0].kind === ts.SyntaxKind.EnumDeclaration
-          ) {
-            return `$Values<
-                ${isTypeImport ? "" : "typeof "}
-                ${getTypeofFullyQualifiedName(targetSymbol, type.typeName)}>`;
-          }
-          return printers.declarations.typeReference(type, !targetSymbol);
-        };
-
-        // if importing an enum, we have to change how the type is used across the file
         if (
           symbol &&
           symbol.declarations &&
           symbol.declarations[0].kind === ts.SyntaxKind.ImportSpecifier
         ) {
-          return getAdjustedType(
-            checker.current.getTypeAtLocation(type).symbol,
-          );
-        } else {
-          return getAdjustedType(symbol);
+          symbol = checker.current.getTypeAtLocation(type).symbol;
         }
+
+        // if importing an enum, we have to change how the type is used across the file
+        if (
+          symbol &&
+          symbol.declarations &&
+          symbol.declarations[0].kind === ts.SyntaxKind.EnumMember
+        ) {
+          return `${isTypeImport ? "" : "typeof"}
+                ${getTypeofFullyQualifiedName(symbol, type.typeName)}`;
+        } else if (
+          symbol &&
+          symbol.declarations &&
+          symbol.declarations[0].kind === ts.SyntaxKind.EnumDeclaration
+        ) {
+          return `$Values<
+                ${isTypeImport ? "" : "typeof "}
+                ${getTypeofFullyQualifiedName(symbol, type.typeName)}>`;
+        }
+
+        return printers.declarations.typeReference(type, !symbol);
       }
 
       case ts.SyntaxKind.VariableDeclaration:
