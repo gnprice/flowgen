@@ -193,7 +193,7 @@ export function getFullyQualifiedName(
     | ts.ModuleDeclaration,
   delimiter = "$",
 ): string {
-  console.log({ symbol, type });
+  // console.log({ symbol, type });
   const typeChecker = checker.current;
   if (!typeChecker) {
     return printEntityName(type);
@@ -219,17 +219,17 @@ export function getFullyQualifiedName(
   if (!symbol || typeChecker.isUnknownSymbol(symbol) || isExternalSymbol) {
     return printEntityName(type);
   }
-  console.log("step 1");
+  // console.log("step 1");
 
   if (!symbol.parent) {
     return printSymbolWithoutParent(typeChecker, symbol);
   }
-  console.log("step 2");
+  // console.log("step 2");
 
   if (isModule(symbol.parent.valueDeclaration)) {
     return typeChecker.symbolToString(symbol);
   }
-  console.log("step 3");
+  // console.log("step 3");
 
   if (symbol.valueDeclaration?.kind === ts.SyntaxKind.EnumMember)
     delimiter = "x"; // TODO should this really be passed recursively?
@@ -237,7 +237,7 @@ export function getFullyQualifiedName(
     getFullyQualifiedName(symbol.parent, type, delimiter) +
     delimiter +
     typeChecker.symbolToString(symbol);
-  console.log(result);
+  // console.log(result);
   return result;
 }
 
