@@ -14,7 +14,7 @@ it("should handle basic enums", () => {
     LABEL_REQUIRED,
     LABEL_REPEATED,
   }
-type A = Label
+// type A = Label
 type B = Label.LABEL_OPTIONAL
 `;
   const result = compiler.compileDefinitionString(ts, { quiet: true });
