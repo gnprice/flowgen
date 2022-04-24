@@ -565,8 +565,8 @@ export const printType = withEnv(
 
       case ts.SyntaxKind.TypeReference: {
         let symbol = checker.current.getSymbolAtLocation(type.typeName);
-        fixDefaultTypeArguments(symbol, type);
-        renames(symbol, type);
+        // fixDefaultTypeArguments(symbol, type);
+        // renames(symbol, type);
 
         const isTypeImport =
           symbol &&
@@ -574,6 +574,7 @@ export const printType = withEnv(
           symbol.declarations[0] &&
           ts.isTypeOnlyImportOrExportDeclaration(symbol.declarations[0]);
 
+        console.log(symbol);
         if (
           symbol &&
           symbol.declarations &&
