@@ -563,30 +563,37 @@ export const printType = withEnv(
 
       case ts.SyntaxKind.TypeReference: {
         let symbol = checker.current.getSymbolAtLocation(type.typeName);
+        if (!symbol) {
+          return printers.declarations.typeReference(type, true);
+        }
+
         fixDefaultTypeArguments(symbol, type);
         renames(symbol, type);
 
         const isTypeImport = some(
-          symbol?.declarations,
+          symbol.declarations,
           ts.isTypeOnlyImportOrExportDeclaration,
         );
 
         // console.log(symbol);
-        if (some(symbol?.declarations, ts.isImportSpecifier)) {
+        if (some(symbol.declarations, ts.isImportSpecifier)) {
           symbol = checker.current.getTypeAtLocation(type).symbol;
+          if (!symbol) {
+            return printers.declarations.typeReference(type, true);
+          }
         }
 
         // if importing an enum, we have to change how the type is used across the file
-        if (some(symbol?.declarations, ts.isEnumMember)) {
+        if (some(symbol.declarations, ts.isEnumMember)) {
           return `${isTypeImport ? "" : "typeof"}
                 ${getTypeofFullyQualifiedName(symbol, type.typeName)}`;
-        } else if (some(symbol?.declarations, ts.isEnumDeclaration)) {
+        } else if (some(symbol.declarations, ts.isEnumDeclaration)) {
           return `$Values<
                 ${isTypeImport ? "" : "typeof "}
                 ${getTypeofFullyQualifiedName(symbol, type.typeName)}>`;
         }
 
-        return printers.declarations.typeReference(type, !symbol);
+        return printers.declarations.typeReference(type, false);
       }
 
       case ts.SyntaxKind.VariableDeclaration:
