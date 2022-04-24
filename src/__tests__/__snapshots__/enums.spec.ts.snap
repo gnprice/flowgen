@@ -32,6 +32,8 @@ exports[`should handle enum on imported module: class 1`] = `
   +A: \\"A\\", // \\"A\\"
   +B: \\"B\\", // \\"B\\"
 |};
+export type LabelA = typeof Label.A;
+export type LLabel = $Values<typeof Label>;
 "
 `;
 
@@ -46,6 +48,8 @@ exports[`should handle importing enum types: class 1`] = `
   +A: \\"A\\", // \\"A\\"
   +B: \\"B\\", // \\"B\\"
 |};
+export type LabelA = typeof Label.A;
+export type LLabel = $Values<typeof Label>;
 "
 `;
 
@@ -60,12 +64,16 @@ exports[`should handle importing enums: class 1`] = `
   +A: \\"A\\", // \\"A\\"
   +B: \\"B\\", // \\"B\\"
 |};
+export type LabelA = typeof Label.A;
+export type LLabel = $Values<typeof Label>;
 "
 `;
 
 exports[`should handle importing enums: class 2`] = `
-"import { Label } from \\"./export-enum-file\\";
+"import { Label as ImportedLabel, LabelA, LLabel } from \\"./export-enum-file\\";
 declare export function foo(label: $Values<typeof Label>): void;
+export type X = typeof Label.A;
+export type Y = $Values<typeof Label>;
 "
 `;
 
