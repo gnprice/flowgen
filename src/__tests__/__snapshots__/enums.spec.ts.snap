@@ -8,6 +8,17 @@ exports[`should handle basic enums: class 1`] = `
 |};
 declare type A = $Values<typeof Label>;
 declare type B = typeof Label.LABEL_OPTIONAL;
+declare var n: typeof npm$namespace$n;
+
+declare var npm$namespace$n: {|
+  E: typeof n$E,
+|};
+
+declare var n$E: {|
+  +EM: 0, // 0
+|};
+declare type AA = n$E;
+declare type BB = n$E.EM;
 "
 `;
 

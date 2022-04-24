@@ -16,6 +16,11 @@ it("should handle basic enums", () => {
   }
 type A = Label
 type B = Label.LABEL_OPTIONAL
+
+// Including enums in namespaces.
+namespace n { enum E { EM } }
+type AA = n.E;
+type BB = n.E.EM;
 `;
   const result = compiler.compileDefinitionString(ts, { quiet: true });
   expect(beautify(result)).toMatchSnapshot("class");
