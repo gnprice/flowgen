@@ -21,6 +21,16 @@ type B = Label.LABEL_OPTIONAL
 namespace n { export enum E { EM } }
 type AA = n.E;
 type BB = n.E.EM;
+
+// TODO: This breaks because we generate separate, conflicting declarations of EN.
+// // Including enums that are also namespaces.
+// namespace EN { export const nsmem = 1; export type T = string; }
+// enum EN { emem = 2 }
+// type X = EN;
+// type Y = typeof EN.nsmem;
+// type Z = EN.emem;
+// type W = EN.T;
+
 `;
   const result = compiler.compileDefinitionString(ts, { quiet: true });
   expect(beautify(result)).toMatchSnapshot("class");
