@@ -8,6 +8,20 @@ exports[`should handle \`typeof\` 1`] = `
   },
   ...
 };
+export type Tx = typeof x;
+export type Txo = typeof x.o;
 export type Txof = typeof x.o.f;
+declare var n: typeof npm$namespace$n;
+
+declare var npm$namespace$n: {|
+  x: typeof n$x,
+|};
+declare export var n$x: {
+  y: number,
+  ...
+};
+export type N = typeof n;
+export type Nx = typeof n$x;
+export type Nxy = typeof n$x.y;
 "
 `;
