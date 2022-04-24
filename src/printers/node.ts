@@ -583,21 +583,8 @@ export const printType = withEnv(
           ts.isTypeOnlyImportOrExportDeclaration,
         );
 
-        // Experiments:
-        //   > [ch, ff] = quickProgram(new Map([['a.ts', `export enum E { EM, EN, EO }`], ['b.ts', `import { E as EE } from './a'; type B = EE; type C = EE.EM; type D = EE.EN`]])); [fa, fb] = [ff.get('a.ts'), ff.get('b.ts')]; 1
-        //   > ch.getTypeAtLocation(fb.locals.get('B').declarations[0].type).symbol.flags
-        //     -> an enum type
-        //   > ch.getTypeAtLocation(fb.locals.get('C').declarations[0].type).symbol.flags
-        //     -> an enum member
-        // But if there's just one member in the enum:
-        //   > [ch, ff] = quickProgram(new Map([['a.ts', `export enum E { EM }`], ['b.ts', `import { E as EE } from './a'; type B = EE; type C = EE.EM`]])); [fa, fb] = [ff.get('a.ts'), ff.get('b.ts')]; 1
-        //   > [twhole, tmem] = [ch.getTypeAtLocation(fb.statements[1].type), ch.getTypeAtLocation(fb.statements[2].type)]; 1
-        //   > twhole.symbol === tmem.symbol
-        //   true
-        //     -> they're the same!  both are the one member, instead of the whole.
-
         // console.log(symbol);
-        if (false && some(symbol.declarations, ts.isImportSpecifier)) {
+        if (some(symbol.declarations, ts.isImportSpecifier)) {
           symbol = checker.current.getTypeAtLocation(type).symbol;
           if (!symbol) {
             return printers.declarations.typeReference(type, false);
