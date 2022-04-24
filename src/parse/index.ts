@@ -13,34 +13,35 @@ const collectModuleDeclaration = (
   context: Node,
   factory: Factory,
 ): void => {
-  if (ts.isIdentifier(node.name)) {
-    if (
-      (node.flags & ts.NodeFlags.GlobalAugmentation) ===
-      ts.NodeFlags.GlobalAugmentation
-    ) {
-      logger.error(node, { type: "UnsupportedGlobalAugmentation" });
-      const globalAugmentation = factory.createModuleNode(node, node.name.text);
-      context.addChild("module" + node.name.text, globalAugmentation);
-      traverseNode(node.body, globalAugmentation, factory);
-      return;
-    }
+  if (node.flags & ts.NodeFlags.GlobalAugmentation) {
+    // A `declare global { … }` declaration, aka a "global scope augmentation".
+    // We don't support these.  Upstream docs:
+    //   https://www.typescriptlang.org/docs/handbook/declaration-merging.html#global-augmentation
+
+    logger.error(node, { type: "UnsupportedGlobalAugmentation" });
+    const globalAugmentation = factory.createModuleNode(node, node.name.text);
+    context.addChild("module" + node.name.text, globalAugmentation);
+    traverseNode(node.body, globalAugmentation, factory);
+  } else if (ts.isIdentifier(node.name)) {
+    // A `namespace n { … }` declaration (including `module n { … }`, the
+    // legacy syntax for the same thing.)  This is a TS namespace, what was
+    // originally called an "internal module":
+    //   https://www.typescriptlang.org/docs/handbook/namespaces.html
+
     const namespace = factory.createNamespaceNode(
       node,
       node.name.text,
       context,
     );
-
     traverseNode(node.body, namespace, factory);
-
     context.addChildren("namespace" + node.name.text, namespace);
-    return;
   } else {
+    // A `module 'foo' { … }` declaration, i.e. an "ambient module".  Docs:
+    //   https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation
+
     const module = factory.createModuleNode(node, node.name.text);
-
     context.addChild("module" + node.name.text, module);
-
     traverseNode(node.body, module, factory);
-    return;
   }
 };
 
