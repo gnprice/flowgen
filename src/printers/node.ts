@@ -28,7 +28,7 @@ type ExpectedKeywordKind =
 
 type PrintNode =
   | ts.KeywordToken<ExpectedKeywordKind>
-  | { kind: typeof ts.SyntaxKind.FirstLiteralToken }
+  | { kind: typeof ts.SyntaxKind.NumericLiteral }
   | ts.CallSignatureDeclaration
   | ts.ConstructorDeclaration
   | ts.TypeParameterDeclaration
@@ -552,17 +552,13 @@ export const printType = withEnv(
         return `$ObjMapi<${source}, <${typeName}>(${typeName}) => ${value}>`;
       }
 
-      case ts.SyntaxKind.FirstLiteralToken:
+      case ts.SyntaxKind.NumericLiteral:
         // @ts-expect-error todo(flow->ts)
         return type.text;
 
       case ts.SyntaxKind.ImportType:
         return printErrorType("Failed to transform an ImportType node", type);
 
-      case ts.SyntaxKind.FirstTypeNode:
-        return printers.common.literalType(type);
-      case ts.SyntaxKind.LastTypeNode:
-        return printers.common.literalType(type);
       case ts.SyntaxKind.LiteralType:
         return printers.common.literalType(type);
 
