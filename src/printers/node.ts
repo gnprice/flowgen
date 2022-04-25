@@ -28,7 +28,7 @@ type ExpectedKeywordKind =
 
 type PrintNode =
   | ts.KeywordToken<ExpectedKeywordKind>
-  | { kind: typeof ts.SyntaxKind.NumericLiteral }
+  | ts.NumericLiteral
   | ts.CallSignatureDeclaration
   | ts.ConstructorDeclaration
   | ts.TypeParameterDeclaration
@@ -352,17 +352,14 @@ export const printType = withEnv(
     // @ts-expect-error todo(flow->ts)
     const type: PrintNode = rawType;
 
-    if (!checker.current) printErrorType("no typechecker", type as ts.Node);
+    if (!checker.current) printErrorType("no typechecker", type);
 
-    const keywordPrefix: string =
-      // @ts-expect-error todo(flow->ts)
-      type.modifiers &&
-      // @ts-expect-error todo(flow->ts)
-      type.modifiers.some(
-        modifier => modifier.kind === ts.SyntaxKind.StaticKeyword,
-      )
-        ? "static "
-        : "";
+    const keywordPrefix: string = some(
+      type.modifiers,
+      modifier => modifier.kind === ts.SyntaxKind.StaticKeyword,
+    )
+      ? "static "
+      : "";
 
     const kind = ts.SyntaxKind[type.kind].toString();
     switch (type.kind) {
@@ -553,7 +550,6 @@ export const printType = withEnv(
       }
 
       case ts.SyntaxKind.NumericLiteral:
-        // @ts-expect-error todo(flow->ts)
         return type.text;
 
       case ts.SyntaxKind.ImportType:
